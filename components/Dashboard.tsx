@@ -4,10 +4,15 @@ import { GoogleGenAI, Modality, LiveServerMessage } from '@google/genai';
 import { decode, decodeAudioData, createBlob } from '../utils/audioHelpers';
 import LiveVisualizer from './LiveVisualizer';
 import NotificationPanel from './NotificationPanel';
+import OfflineAssessmentView from '../views/OfflineAssessmentView';
 import { Message, ConnectionStatus, ClinicalReport, Notification, NotificationType } from '../types';
 import { saveChatHistory, savePatientSummary, getPatientContext, clearAllMemory, getLatestReport, getAllReports, ClinicalReportRecord } from '../utils/storage';
 import { useUser, UserButton } from '@clerk/clerk-react';
-import { LogOut, BookOpen, Activity, History, MessageSquare, Download, ChevronRight, Search, Clock, MapPin, Camera, Home, Bell, Sparkles, ArrowRight, Zap, Heart, Sun, Moon, CloudSun } from 'lucide-react';
+import { 
+  BookOpen, Activity, History, MessageSquare, Download, 
+  ChevronRight, Search, Clock, Home, Bell, Sparkles, ArrowRight, 
+  Zap, Heart, Sun, Moon, CloudSun, MapPin, Camera, ClipboardList 
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const MODEL_NAME = 'gemini-2.0-flash-exp';
@@ -35,7 +40,7 @@ const Dashboard: React.FC = () => {
     const [showDocs, setShowDocs] = useState(false);
     const [latestReport, setLatestReport] = useState<ClinicalReport | null>(null);
     const [showReport, setShowReport] = useState(false);
-    const [activeView, setActiveView] = useState<'home' | 'consultation' | 'reports'>('home');
+    const [activeView, setActiveView] = useState<'home' | 'consultation' | 'reports' | 'assessment'>('home');
     const [allReports, setAllReports] = useState<ClinicalReportRecord[]>([]);
     const [selectedReport, setSelectedReport] = useState<ClinicalReportRecord | null>(null);
     const [isLoadingReports, setIsLoadingReports] = useState(false);
@@ -587,6 +592,17 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                         <History className={`w-5 h-5 ${activeView === 'reports' ? 'text-white' : 'text-slate-400 group-hover:text-blue-500'}`} />
                         <span className="font-semibold">Reports History</span>
                     </button>
+                    <button
+                        onClick={() => setActiveView('assessment')}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeView === 'assessment'
+                            ? 'bg-emerald-600 text-white shadow-md shadow-emerald-100'
+                            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                            }`}
+                    >
+                        <ClipboardList className={`w-5 h-5 ${activeView === 'assessment' ? 'text-white' : 'text-slate-400 group-hover:text-emerald-500'}`} />
+                        <span className="font-semibold">Low Network</span>
+                        <span className="ml-auto px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[9px] font-bold rounded uppercase">Offline</span>
+                    </button>
 
                     <div className="pt-6 pb-2 px-4">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Resources</span>
@@ -1013,7 +1029,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                             </section>
                         </main>
                     </>
-                ) : (
+                ) : activeView === 'reports' ? (
                     <>
                         <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-6 flex items-center justify-between shrink-0 sticky top-0">
                             <div>
@@ -1113,7 +1129,9 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                             )}
                         </main>
                     </>
-                )}
+                ) : activeView === 'assessment' ? (
+                    <OfflineAssessmentView />
+                ) : null}
             </div>
 
             {/* Loading Overlay for Report Generation */}

@@ -1,0 +1,783 @@
+{
+    "migraine": {
+        "name": "Migraine",
+        "riskLevel": "low",
+        "description": "A neurological condition causing intense, throbbing headaches, often accompanied by nausea and sensitivity to light or sound.",
+        "commonSymptoms": [
+            "headache",
+            "nausea",
+            "light_sensitivity",
+            "blurred_vision"
+        ],
+        "tests": [
+            "neurological_exam"
+        ],
+        "specialties": [
+            "Neurologist"
+        ],
+        "prevalence": "common"
+    },
+    "tension_headache": {
+        "name": "Tension Headache",
+        "riskLevel": "low",
+        "description": "A common type of headache characterized by mild to moderate pain, often described as a tight band around the head.",
+        "commonSymptoms": [
+            "headache",
+            "fatigue",
+            "stiff_neck"
+        ],
+        "tests": [],
+        "specialties": [
+            "General Physician"
+        ],
+        "prevalence": "very_common"
+    },
+    "flu": {
+        "name": "Influenza (Flu)",
+        "riskLevel": "moderate",
+        "description": "A contagious respiratory illness caused by influenza viruses, causing fever, body aches, and respiratory symptoms.",
+        "commonSymptoms": [
+            "fever",
+            "cough",
+            "body_aches",
+            "fatigue",
+            "sore_throat",
+            "chills"
+        ],
+        "tests": [
+            "flu_test",
+            "cbc"
+        ],
+        "specialties": [
+            "General Physician"
+        ],
+        "prevalence": "common"
+    },
+    "covid": {
+        "name": "COVID-19",
+        "riskLevel": "moderate",
+        "description": "A respiratory illness caused by coronavirus, ranging from mild symptoms to severe pneumonia.",
+        "commonSymptoms": [
+            "fever",
+            "cough",
+            "fatigue",
+            "loss_of_smell",
+            "loss_of_taste",
+            "body_aches"
+        ],
+        "tests": [
+            "covid_test",
+            "chest_xray"
+        ],
+        "specialties": [
+            "General Physician",
+            "Pulmonologist"
+        ],
+        "prevalence": "common"
+    },
+    "common_cold": {
+        "name": "Common Cold",
+        "riskLevel": "low",
+        "description": "A viral infection of the upper respiratory tract causing runny nose, sneezing, and mild discomfort.",
+        "commonSymptoms": [
+            "runny_nose",
+            "sore_throat",
+            "cough",
+            "fever"
+        ],
+        "tests": [],
+        "specialties": [
+            "General Physician"
+        ],
+        "prevalence": "very_common"
+    },
+    "sinusitis": {
+        "name": "Sinusitis",
+        "riskLevel": "low",
+        "description": "Inflammation of the sinuses causing facial pain, nasal congestion, and headaches.",
+        "commonSymptoms": [
+            "headache",
+            "runny_nose",
+            "loss_of_smell"
+        ],
+        "tests": [
+            "sinus_xray"
+        ],
+        "specialties": [
+            "ENT Specialist"
+        ],
+        "prevalence": "common"
+    },
+    "gastritis": {
+        "name": "Gastritis",
+        "riskLevel": "low",
+        "description": "Inflammation of the stomach lining causing abdominal pain, nausea, and indigestion.",
+        "commonSymptoms": [
+            "abdominal_pain",
+            "nausea",
+            "bloating",
+            "heartburn",
+            "loss_of_appetite"
+        ],
+        "tests": [
+            "endoscopy",
+            "h_pylori_test"
+        ],
+        "specialties": [
+            "Gastroenterologist"
+        ],
+        "prevalence": "common"
+    },
+    "food_poisoning": {
+        "name": "Food Poisoning",
+        "riskLevel": "moderate",
+        "description": "Illness caused by consuming contaminated food or water, leading to digestive symptoms.",
+        "commonSymptoms": [
+            "nausea",
+            "vomiting",
+            "diarrhea",
+            "abdominal_pain",
+            "fever"
+        ],
+        "tests": [
+            "stool_test"
+        ],
+        "specialties": [
+            "General Physician",
+            "Gastroenterologist"
+        ],
+        "prevalence": "common"
+    },
+    "gastroenteritis": {
+        "name": "Gastroenteritis",
+        "riskLevel": "moderate",
+        "description": "Inflammation of the stomach and intestines, typically caused by viral or bacterial infection.",
+        "commonSymptoms": [
+            "diarrhea",
+            "vomiting",
+            "nausea",
+            "abdominal_pain",
+            "fever"
+        ],
+        "tests": [
+            "stool_test",
+            "cbc"
+        ],
+        "specialties": [
+            "Gastroenterologist"
+        ],
+        "prevalence": "common"
+    },
+    "diabetes": {
+        "name": "Diabetes Mellitus",
+        "riskLevel": "high",
+        "description": "A chronic metabolic disorder affecting blood sugar regulation, requiring ongoing management.",
+        "commonSymptoms": [
+            "excessive_thirst",
+            "frequent_urination",
+            "fatigue",
+            "blurred_vision",
+            "weight_loss"
+        ],
+        "tests": [
+            "blood_glucose",
+            "hba1c",
+            "urine_test"
+        ],
+        "specialties": [
+            "Endocrinologist"
+        ],
+        "prevalence": "common"
+    },
+    "hypertension": {
+        "name": "Hypertension (High Blood Pressure)",
+        "riskLevel": "high",
+        "description": "A chronic condition where blood pressure is consistently elevated, increasing risk of heart disease and stroke.",
+        "commonSymptoms": [
+            "headache",
+            "dizziness",
+            "blurred_vision",
+            "shortness_of_breath"
+        ],
+        "tests": [
+            "blood_pressure",
+            "ecg",
+            "kidney_function"
+        ],
+        "specialties": [
+            "Cardiologist"
+        ],
+        "prevalence": "common"
+    },
+    "anemia": {
+        "name": "Anemia",
+        "riskLevel": "moderate",
+        "description": "A condition where blood lacks enough healthy red blood cells, causing fatigue and weakness.",
+        "commonSymptoms": [
+            "fatigue",
+            "dizziness",
+            "shortness_of_breath",
+            "palpitations",
+            "muscle_weakness"
+        ],
+        "tests": [
+            "cbc",
+            "iron_studies",
+            "vitamin_b12"
+        ],
+        "specialties": [
+            "Hematologist"
+        ],
+        "prevalence": "common"
+    },
+    "thyroid_disorder": {
+        "name": "Thyroid Disorder",
+        "riskLevel": "moderate",
+        "description": "Conditions affecting the thyroid gland, causing metabolism changes, weight fluctuations, and energy issues.",
+        "commonSymptoms": [
+            "fatigue",
+            "weight_loss",
+            "weight_gain",
+            "palpitations",
+            "insomnia",
+            "sweating"
+        ],
+        "tests": [
+            "thyroid_panel",
+            "tsh_test"
+        ],
+        "specialties": [
+            "Endocrinologist"
+        ],
+        "prevalence": "common"
+    },
+    "urinary_tract_infection": {
+        "name": "Urinary Tract Infection (UTI)",
+        "riskLevel": "moderate",
+        "description": "A bacterial infection in the urinary system causing pain and frequent urination.",
+        "commonSymptoms": [
+            "burning_urination",
+            "frequent_urination",
+            "fever",
+            "abdominal_pain",
+            "chills"
+        ],
+        "tests": [
+            "urine_test",
+            "urine_culture"
+        ],
+        "specialties": [
+            "Urologist",
+            "General Physician"
+        ],
+        "prevalence": "common"
+    },
+    "anxiety": {
+        "name": "Anxiety Disorder",
+        "riskLevel": "moderate",
+        "description": "A mental health condition causing excessive worry, nervousness, and physical symptoms.",
+        "commonSymptoms": [
+            "palpitations",
+            "sweating",
+            "insomnia",
+            "chest_pain",
+            "shortness_of_breath",
+            "dizziness"
+        ],
+        "tests": [
+            "psychological_evaluation"
+        ],
+        "specialties": [
+            "Psychiatrist",
+            "Psychologist"
+        ],
+        "prevalence": "common"
+    },
+    "depression": {
+        "name": "Depression",
+        "riskLevel": "moderate",
+        "description": "A mood disorder causing persistent feelings of sadness, hopelessness, and loss of interest.",
+        "commonSymptoms": [
+            "fatigue",
+            "insomnia",
+            "loss_of_appetite",
+            "weight_loss",
+            "weight_gain"
+        ],
+        "tests": [
+            "psychological_evaluation"
+        ],
+        "specialties": [
+            "Psychiatrist",
+            "Psychologist"
+        ],
+        "prevalence": "common"
+    },
+    "asthma": {
+        "name": "Asthma",
+        "riskLevel": "moderate",
+        "description": "A chronic respiratory condition causing airway inflammation and breathing difficulties.",
+        "commonSymptoms": [
+            "shortness_of_breath",
+            "cough",
+            "chest_pain"
+        ],
+        "tests": [
+            "spirometry",
+            "peak_flow",
+            "chest_xray"
+        ],
+        "specialties": [
+            "Pulmonologist"
+        ],
+        "prevalence": "common"
+    },
+    "pneumonia": {
+        "name": "Pneumonia",
+        "riskLevel": "high",
+        "description": "A serious lung infection causing inflammation and fluid in the air sacs.",
+        "commonSymptoms": [
+            "cough",
+            "fever",
+            "shortness_of_breath",
+            "chills",
+            "chest_pain"
+        ],
+        "tests": [
+            "chest_xray",
+            "cbc",
+            "sputum_test"
+        ],
+        "specialties": [
+            "Pulmonologist"
+        ],
+        "prevalence": "common"
+    },
+    "bronchitis": {
+        "name": "Bronchitis",
+        "riskLevel": "moderate",
+        "description": "Inflammation of the bronchial tubes causing persistent cough and mucus production.",
+        "commonSymptoms": [
+            "cough",
+            "fatigue",
+            "chest_pain",
+            "shortness_of_breath"
+        ],
+        "tests": [
+            "chest_xray",
+            "spirometry"
+        ],
+        "specialties": [
+            "Pulmonologist"
+        ],
+        "prevalence": "common"
+    },
+    "appendicitis": {
+        "name": "Appendicitis",
+        "riskLevel": "high",
+        "description": "Inflammation of the appendix requiring urgent medical attention, often surgical.",
+        "commonSymptoms": [
+            "abdominal_pain",
+            "nausea",
+            "vomiting",
+            "fever"
+        ],
+        "tests": [
+            "ct_scan",
+            "ultrasound",
+            "cbc"
+        ],
+        "specialties": [
+            "General Surgeon"
+        ],
+        "prevalence": "moderate"
+    },
+    "kidney_stones": {
+        "name": "Kidney Stones",
+        "riskLevel": "moderate",
+        "description": "Hard deposits of minerals and salts in the kidneys causing severe pain.",
+        "commonSymptoms": [
+            "back_pain",
+            "abdominal_pain",
+            "burning_urination",
+            "nausea"
+        ],
+        "tests": [
+            "ultrasound",
+            "ct_scan",
+            "urine_test"
+        ],
+        "specialties": [
+            "Urologist",
+            "Nephrologist"
+        ],
+        "prevalence": "common"
+    },
+    "arthritis": {
+        "name": "Arthritis",
+        "riskLevel": "moderate",
+        "description": "Joint inflammation causing pain, stiffness, and reduced mobility.",
+        "commonSymptoms": [
+            "joint_pain",
+            "swelling",
+            "back_pain"
+        ],
+        "tests": [
+            "xray",
+            "rheumatoid_factor",
+            "cbc"
+        ],
+        "specialties": [
+            "Rheumatologist",
+            "Orthopedist"
+        ],
+        "prevalence": "common"
+    },
+    "gerd": {
+        "name": "GERD (Acid Reflux)",
+        "riskLevel": "low",
+        "description": "Chronic acid reflux causing heartburn and discomfort in the chest area.",
+        "commonSymptoms": [
+            "heartburn",
+            "chest_pain",
+            "nausea",
+            "bloating"
+        ],
+        "tests": [
+            "endoscopy",
+            "ph_monitoring"
+        ],
+        "specialties": [
+            "Gastroenterologist"
+        ],
+        "prevalence": "common"
+    },
+    "ibs": {
+        "name": "Irritable Bowel Syndrome (IBS)",
+        "riskLevel": "low",
+        "description": "A chronic digestive disorder causing abdominal pain and changes in bowel habits.",
+        "commonSymptoms": [
+            "abdominal_pain",
+            "bloating",
+            "diarrhea",
+            "constipation"
+        ],
+        "tests": [
+            "colonoscopy",
+            "stool_test"
+        ],
+        "specialties": [
+            "Gastroenterologist"
+        ],
+        "prevalence": "common"
+    },
+    "malaria": {
+        "name": "Malaria",
+        "riskLevel": "high",
+        "description": "A serious mosquito-borne disease causing high fever and chills, common in tropical regions.",
+        "commonSymptoms": [
+            "fever",
+            "chills",
+            "body_aches",
+            "sweating",
+            "headache"
+        ],
+        "tests": [
+            "malaria_smear",
+            "rapid_malaria_test",
+            "cbc"
+        ],
+        "specialties": [
+            "Infectious Disease Specialist"
+        ],
+        "prevalence": "regional"
+    },
+    "dengue": {
+        "name": "Dengue Fever",
+        "riskLevel": "high",
+        "description": "A mosquito-borne viral infection causing high fever, severe body aches, and rash.",
+        "commonSymptoms": [
+            "fever",
+            "body_aches",
+            "joint_pain",
+            "rash",
+            "headache"
+        ],
+        "tests": [
+            "dengue_test",
+            "cbc",
+            "platelet_count"
+        ],
+        "specialties": [
+            "Infectious Disease Specialist"
+        ],
+        "prevalence": "regional"
+    },
+    "typhoid": {
+        "name": "Typhoid Fever",
+        "riskLevel": "high",
+        "description": "A bacterial infection spread through contaminated food and water.",
+        "commonSymptoms": [
+            "fever",
+            "diarrhea",
+            "weight_loss",
+            "headache",
+            "abdominal_pain"
+        ],
+        "tests": [
+            "widal_test",
+            "blood_culture",
+            "stool_test"
+        ],
+        "specialties": [
+            "Infectious Disease Specialist"
+        ],
+        "prevalence": "regional"
+    },
+    "dehydration": {
+        "name": "Dehydration",
+        "riskLevel": "moderate",
+        "description": "A condition where the body loses more fluids than it takes in.",
+        "commonSymptoms": [
+            "fatigue",
+            "dizziness",
+            "headache",
+            "constipation",
+            "excessive_thirst"
+        ],
+        "tests": [
+            "electrolytes",
+            "urine_test"
+        ],
+        "specialties": [
+            "General Physician"
+        ],
+        "prevalence": "common"
+    },
+    "vertigo": {
+        "name": "Vertigo",
+        "riskLevel": "low",
+        "description": "A sensation of spinning or dizziness, often related to inner ear problems.",
+        "commonSymptoms": [
+            "dizziness",
+            "nausea",
+            "vomiting"
+        ],
+        "tests": [
+            "vestibular_test",
+            "mri_brain"
+        ],
+        "specialties": [
+            "ENT Specialist",
+            "Neurologist"
+        ],
+        "prevalence": "common"
+    },
+    "allergies": {
+        "name": "Allergies",
+        "riskLevel": "low",
+        "description": "Immune system reactions to substances like pollen, dust, or certain foods.",
+        "commonSymptoms": [
+            "runny_nose",
+            "rash",
+            "swelling",
+            "shortness_of_breath"
+        ],
+        "tests": [
+            "allergy_test",
+            "ige_test"
+        ],
+        "specialties": [
+            "Allergist",
+            "Immunologist"
+        ],
+        "prevalence": "very_common"
+    },
+    "gout": {
+        "name": "Gout",
+        "riskLevel": "moderate",
+        "description": "A form of arthritis caused by uric acid buildup, causing sudden joint pain.",
+        "commonSymptoms": [
+            "joint_pain",
+            "swelling"
+        ],
+        "tests": [
+            "uric_acid",
+            "joint_fluid_analysis"
+        ],
+        "specialties": [
+            "Rheumatologist"
+        ],
+        "prevalence": "common"
+    },
+    "strep_throat": {
+        "name": "Strep Throat",
+        "riskLevel": "moderate",
+        "description": "A bacterial infection causing severe sore throat and fever.",
+        "commonSymptoms": [
+            "sore_throat",
+            "fever",
+            "swelling"
+        ],
+        "tests": [
+            "throat_culture",
+            "rapid_strep_test"
+        ],
+        "specialties": [
+            "ENT Specialist",
+            "General Physician"
+        ],
+        "prevalence": "common"
+    },
+    "meningitis": {
+        "name": "Meningitis",
+        "riskLevel": "high",
+        "description": "A serious infection causing inflammation of membranes around the brain and spinal cord.",
+        "commonSymptoms": [
+            "fever",
+            "headache",
+            "stiff_neck",
+            "light_sensitivity"
+        ],
+        "tests": [
+            "lumbar_puncture",
+            "cbc",
+            "mri_brain"
+        ],
+        "specialties": [
+            "Neurologist",
+            "Infectious Disease Specialist"
+        ],
+        "prevalence": "rare"
+    },
+    "angina": {
+        "name": "Angina",
+        "riskLevel": "high",
+        "description": "Chest pain caused by reduced blood flow to the heart, a warning sign of heart disease.",
+        "commonSymptoms": [
+            "chest_pain",
+            "shortness_of_breath",
+            "fatigue",
+            "sweating"
+        ],
+        "tests": [
+            "ecg",
+            "stress_test",
+            "angiography"
+        ],
+        "specialties": [
+            "Cardiologist"
+        ],
+        "prevalence": "common"
+    },
+    "muscle_strain": {
+        "name": "Muscle Strain",
+        "riskLevel": "low",
+        "description": "Overstretching or tearing of muscle fibers, causing pain and limited movement.",
+        "commonSymptoms": [
+            "back_pain",
+            "joint_pain",
+            "swelling"
+        ],
+        "tests": [
+            "physical_exam"
+        ],
+        "specialties": [
+            "Orthopedist",
+            "Physiotherapist"
+        ],
+        "prevalence": "very_common"
+    },
+    "herniated_disc": {
+        "name": "Herniated Disc",
+        "riskLevel": "moderate",
+        "description": "A spinal condition where disc material presses on nearby nerves.",
+        "commonSymptoms": [
+            "back_pain",
+            "numbness",
+            "muscle_weakness"
+        ],
+        "tests": [
+            "mri_spine",
+            "nerve_conduction"
+        ],
+        "specialties": [
+            "Orthopedist",
+            "Neurologist"
+        ],
+        "prevalence": "common"
+    },
+    "sleep_disorder": {
+        "name": "Sleep Disorder",
+        "riskLevel": "moderate",
+        "description": "Conditions affecting sleep quality, including insomnia and sleep apnea.",
+        "commonSymptoms": [
+            "insomnia",
+            "fatigue",
+            "headache"
+        ],
+        "tests": [
+            "sleep_study"
+        ],
+        "specialties": [
+            "Sleep Specialist",
+            "Psychiatrist"
+        ],
+        "prevalence": "common"
+    },
+    "vitamin_d_deficiency": {
+        "name": "Vitamin D Deficiency",
+        "riskLevel": "low",
+        "description": "Low levels of vitamin D causing fatigue, bone pain, and muscle weakness.",
+        "commonSymptoms": [
+            "fatigue",
+            "muscle_weakness",
+            "back_pain"
+        ],
+        "tests": [
+            "vitamin_d_test"
+        ],
+        "specialties": [
+            "General Physician",
+            "Endocrinologist"
+        ],
+        "prevalence": "common"
+    },
+    "hypoglycemia": {
+        "name": "Hypoglycemia (Low Blood Sugar)",
+        "riskLevel": "moderate",
+        "description": "A condition where blood sugar drops below normal levels.",
+        "commonSymptoms": [
+            "dizziness",
+            "sweating",
+            "palpitations",
+            "fatigue"
+        ],
+        "tests": [
+            "blood_glucose"
+        ],
+        "specialties": [
+            "Endocrinologist"
+        ],
+        "prevalence": "common"
+    },
+    "pcos": {
+        "name": "Polycystic Ovary Syndrome (PCOS)",
+        "riskLevel": "moderate",
+        "description": "A hormonal disorder affecting women, causing irregular periods and hormonal imbalance.",
+        "commonSymptoms": [
+            "weight_gain",
+            "bloating",
+            "fatigue"
+        ],
+        "tests": [
+            "hormone_panel",
+            "ultrasound_pelvis"
+        ],
+        "specialties": [
+            "Gynecologist",
+            "Endocrinologist"
+        ],
+        "prevalence": "common"
+    }
+}

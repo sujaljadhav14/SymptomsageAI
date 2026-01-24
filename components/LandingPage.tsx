@@ -2,8 +2,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SignInButton, SignedIn, SignedOut } from '@clerk/clerk-react';
-import { Shield, Zap, MessageSquare, ArrowRight, Activity, Bell, Lock } from 'lucide-react';
+import { Shield, Zap, MessageSquare, ArrowRight, Activity, Bell, Lock, WifiOff } from 'lucide-react';
 import { motion } from 'framer-motion';
+import ChatSymptomChecker from './assessment/ChatSymptomChecker';
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
@@ -145,6 +146,45 @@ const LandingPage: React.FC = () => {
                         </div>
                     </motion.div>
                 </motion.div>
+            </section>
+
+            {/* Low Network Mode Section */}
+            <section className="py-24 px-6 bg-gradient-to-br from-teal-50 to-emerald-50 border-y border-teal-100">
+                <div className="max-w-7xl mx-auto">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                        <div className="space-y-6">
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-teal-100 text-teal-800 rounded-full text-xs font-bold uppercase tracking-wider">
+                                <WifiOff className="w-3.5 h-3.5" />
+                                Works Offline
+                            </div>
+                            <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight">
+                                Low Network Mode
+                            </h2>
+                            <p className="text-lg text-slate-600 leading-relaxed">
+                                No internet? No problem. Try our offline symptom checker right here -
+                                no signup required. Type your symptoms naturally and get instant,
+                                explainable health assessments powered by local rules.
+                            </p>
+                            <div className="flex flex-wrap gap-4 text-sm text-teal-700 font-medium">
+                                <div className="flex items-center gap-2">
+                                    <Shield className="w-4 h-4" />
+                                    <span>100% Private</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Zap className="w-4 h-4" />
+                                    <span>Instant Results</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <MessageSquare className="w-4 h-4" />
+                                    <span>Natural Language</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <ChatSymptomChecker compact={true} />
+                        </div>
+                    </div>
+                </div>
             </section>
 
             {/* Features Grid */}
