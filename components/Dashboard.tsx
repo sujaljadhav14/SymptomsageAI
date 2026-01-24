@@ -3,12 +3,12 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI, Modality, LiveServerMessage } from '@google/genai';
 import { decode, decodeAudioData, createBlob } from '../utils/audioHelpers';
 import LiveVisualizer from './LiveVisualizer';
-import { Message, ConnectionStatus } from '../types';
-import { saveChatHistory, savePatientSummary, getPatientContext, clearAllMemory } from '../utils/storage';
-import { useUser, UserButton, SignOutButton } from '@clerk/clerk-react';
-import { LogOut, BookOpen, Activity } from 'lucide-react';
+import { Message, ConnectionStatus, ClinicalReport } from '../types';
+import { saveChatHistory, savePatientSummary, getPatientContext, clearAllMemory, getLatestReport, getAllReports, ClinicalReportRecord } from '../utils/storage';
+import { useUser, UserButton } from '@clerk/clerk-react';
+import { LogOut, BookOpen, Activity, History, MessageSquare, Download, ChevronRight, Search, Clock } from 'lucide-react';
 
-const MODEL_NAME = 'gemini-2.5-flash-native-audio-preview-12-2025';
+const MODEL_NAME = 'gemini-2.0-flash-exp';
 const SYSTEM_INSTRUCTION = `
 You are SymptomSage, a professional and empathetic medical triage assistant. 
 Your goal is to help users understand their symptoms and determine the urgency of seeking medical care.
@@ -30,6 +30,13 @@ const Dashboard: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [patientContext, setPatientContext] = useState<string>('');
     const [showDocs, setShowDocs] = useState(false);
+    const [latestReport, setLatestReport] = useState<ClinicalReport | null>(null);
+    const [showReport, setShowReport] = useState(false);
+    const [activeView, setActiveView] = useState<'consultation' | 'reports'>('consultation');
+    const [allReports, setAllReports] = useState<ClinicalReportRecord[]>([]);
+    const [selectedReport, setSelectedReport] = useState<ClinicalReportRecord | null>(null);
+    const [isLoadingReports, setIsLoadingReports] = useState(false);
+    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
     // Audio Context Refs
     const inputAudioContextRef = useRef<AudioContext | null>(null);
@@ -39,19 +46,23 @@ const Dashboard: React.FC = () => {
     const sessionRef = useRef<any>(null);
     const streamRef = useRef<MediaStream | null>(null);
     const scriptProcessorRef = useRef<ScriptProcessorNode | null>(null);
+    const cleanupRef = useRef(false);
 
     // Transcription storage
     const currentInputText = useRef('');
     const currentOutputText = useRef('');
+    const messagesRef = useRef<Message[]>([]);
 
     const addMessage = useCallback((role: 'user' | 'assistant', text: string) => {
         if (!text.trim()) return;
-        setMessages(prev => [...prev, {
+        const newMessage = {
             id: Math.random().toString(36).substring(7),
             role,
             text,
             timestamp: new Date()
-        }]);
+        };
+        setMessages(prev => [...prev, newMessage]);
+        messagesRef.current = [...messagesRef.current, newMessage];
     }, []);
 
     const stopAllAudio = () => {
@@ -63,24 +74,90 @@ const Dashboard: React.FC = () => {
         setIsAssistantSpeaking(false);
     };
 
+    const downloadReport = (reportToDownload?: ClinicalReport) => {
+        const report = reportToDownload || latestReport;
+        if (!report) return;
+
+        const content = `
+SYMPTOMSAGE AI - CLINICAL TRIAGE REPORT
+Generated on: ${new Date().toLocaleString()}
+-------------------------------------------
+
+SEVERITY: ${report.severity.toUpperCase()}
+
+SUMMARY:
+${report.summary}
+
+PRECAUTIONS:
+${report.precautions.map(p => `- ${p}`).join('\n')}
+
+GENERAL TESTS:
+${report.recommendedTests.map(t => `- ${t}`).join('\n')}
+
+CLINICAL DIFFERENTIATOR:
+${report.differentiation}
+
+-------------------------------------------
+DISCLAIMER: This report is AI-generated for informational purposes and does not constitute a medical diagnosis. Always seek professional medical advice.
+        `.trim();
+
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `SymptomSage_Report_${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
+    const fetchReports = useCallback(async () => {
+        if (!user?.id) return;
+        setIsLoadingReports(true);
+        const reports = await getAllReports(user.id);
+        setAllReports(reports);
+        setIsLoadingReports(false);
+    }, [user?.id]);
+
+    useEffect(() => {
+        if (activeView === 'reports') {
+            fetchReports();
+        }
+    }, [activeView, fetchReports]);
+
     const summarizeSession = async (chatMessages: Message[]) => {
-        if (chatMessages.length < 2) return;
+        if (chatMessages.length < 1) return;
+
+        setIsGeneratingReport(true);
+        console.log('--- DEBUG: GENERATING REPORT V4 (GEMINI 2.0 SINGLE MODEL) ---');
 
         try {
             const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY || '';
             if (!apiKey || apiKey === 'PLACEHOLDER_API_KEY') {
                 console.warn('API Key not set. Skipping summarization.');
+                setIsGeneratingReport(false);
                 return;
             }
 
-            const prompt = `Based on the following medical triage conversation, provide a VERY BRIEF summary (max 2 sentences) of the patient's symptoms, reported severity, and any critical information (allergies, medications) disclosed. This summary will be used as context for the next time the patient visits.
+            const prompt = `Based on the following medical triage conversation, provide a detailed structured report.
+            
+            Return a valid JSON object with the following structure:
+            {
+              "summary": "2-sentence overview of symptoms and severity",
+              "precautions": ["list", "of", "immediate", "medical", "precautions"],
+              "severity": "low" | "medium" | "high" | "emergency",
+              "recommendedTests": ["list", "of", "general", "medical", "tests", "that", "might", "be", "needed"],
+              "differentiation": "What makes this case different or unique based on the patient's description"
+            }
       
-      Conversation:
-      ${chatMessages.map(m => `${m.role}: ${m.text}`).join('\n')}
+            Conversation:
+            ${chatMessages.map(m => `${m.role}: ${m.text}`).join('\n')}
       
-      Summary:`;
+            Return ONLY the raw JSON.`;
 
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            // Use v1beta for gemini-2.0-flash-exp
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -89,20 +166,61 @@ const Dashboard: React.FC = () => {
             });
 
             const data = await response.json();
-            const summary = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-            if (summary && user?.id) {
-                await savePatientSummary(user.id, summary);
-                const context = await getPatientContext(user.id);
-                setPatientContext(context); // Refresh context
+            if (!response.ok) {
+                console.error('Gemini API Error Response:', data);
+                setError(`API Error: ${data.error?.message || 'Failed to connect to Gemini 2.0'}`);
+                return;
             }
-        } catch (e) {
-            console.error('Failed to summarize session', e);
+
+            const reportResultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (reportResultText && user?.id) {
+                try {
+                    // Extract JSON if model wraps it in markdown blocks
+                    const jsonMatch = reportResultText.match(/\{[\s\S]*\}/);
+                    const cleanedJson = jsonMatch ? jsonMatch[0] : reportResultText.replace(/```json\n?|\n?```/g, '').trim();
+                    const report: ClinicalReport = JSON.parse(cleanedJson);
+
+                    console.log('Successfully generated clinical report. Saving to Supabase...');
+                    await savePatientSummary(user.id, report);
+
+                    setLatestReport(report);
+                    setShowReport(true);
+
+                    const context = await getPatientContext(user.id);
+                    setPatientContext(context);
+                    fetchReports();
+                } catch (e) {
+                    console.warn('Failed to parse report JSON. Saving as raw text instead.', reportResultText);
+                    // Create a pseudo-report object for raw text so UI doesn't crash
+                    const fallbackReport: ClinicalReport = {
+                        summary: reportResultText,
+                        precautions: ["Review audio transcript for specific advice"],
+                        severity: 'medium',
+                        recommendedTests: [],
+                        differentiation: "Non-structured report format"
+                    };
+                    await savePatientSummary(user.id, fallbackReport);
+                    setLatestReport(fallbackReport);
+                    setShowReport(true);
+                    fetchReports();
+                }
+            } else {
+                console.warn('No report content received from Gemini.');
+                setError('Failed to generate clinical report. Please try again.');
+            }
+        } catch (e: any) {
+            console.error('Failed to summarize session:', e);
+            setError(`Summarization error: ${e.message || 'Unknown error'}`);
+        } finally {
+            setIsGeneratingReport(false);
         }
     };
 
     const startSession = async () => {
         try {
+            cleanupRef.current = false;
             setStatus(ConnectionStatus.CONNECTING);
             setError(null);
 
@@ -201,12 +319,12 @@ const Dashboard: React.FC = () => {
                         }
                     },
                     onerror: (e) => {
-                        console.error('Session Error:', e);
+                        console.error('Detailed Session Error:', e);
                         setStatus(ConnectionStatus.ERROR);
-                        setError('Communication error with the medical AI.');
+                        setError(`AI Error: ${e.message || 'Communication error'}`);
                     },
-                    onclose: () => {
-                        console.log('Session Closed');
+                    onclose: (e: any) => {
+                        console.log('Session Closed Event:', e);
                         cleanup();
                     }
                 }
@@ -222,6 +340,10 @@ const Dashboard: React.FC = () => {
     };
 
     const cleanup = () => {
+        if (cleanupRef.current) return;
+        cleanupRef.current = true;
+
+        console.log('Starting session cleanup...');
         if (scriptProcessorRef.current) scriptProcessorRef.current.disconnect();
         if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
         if (inputAudioContextRef.current) inputAudioContextRef.current.close();
@@ -230,9 +352,33 @@ const Dashboard: React.FC = () => {
         setStatus(ConnectionStatus.DISCONNECTED);
         sessionRef.current = null;
 
-        if (messages.length > 0 && user?.id) {
-            saveChatHistory(user.id, messages);
-            summarizeSession(messages);
+        // Flush any pending transcription before closing
+        const finalMessages = [...messagesRef.current];
+        if (currentInputText.current) {
+            finalMessages.push({
+                id: 'final-user',
+                role: 'user',
+                text: currentInputText.current,
+                timestamp: new Date()
+            });
+            currentInputText.current = '';
+        }
+        if (currentOutputText.current) {
+            finalMessages.push({
+                id: 'final-assistant',
+                role: 'assistant',
+                text: currentOutputText.current,
+                timestamp: new Date()
+            });
+            currentOutputText.current = '';
+        }
+
+        if (finalMessages.length > 0 && user?.id) {
+            console.log('Finalizing session with', finalMessages.length, 'messages');
+            saveChatHistory(user.id, finalMessages);
+            summarizeSession(finalMessages);
+        } else {
+            console.warn('No messages to summarize or user not authenticated');
         }
     };
 
@@ -248,6 +394,8 @@ const Dashboard: React.FC = () => {
             if (user?.id) {
                 const context = await getPatientContext(user.id);
                 setPatientContext(context);
+                const report = await getLatestReport(user.id);
+                setLatestReport(report);
             }
         };
         loadContext();
@@ -255,238 +403,424 @@ const Dashboard: React.FC = () => {
     }, [user]);
 
     return (
-        <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 overflow-hidden">
-            <div className="bg-amber-50 border-b border-amber-200 p-2 text-center text-xs font-medium text-amber-800">
-                ⚠️ IMPORTANT: This is an AI assistant, not a doctor. In case of emergency, call 911 immediately.
-            </div>
-
-            {patientContext && (
-                <div className="bg-blue-600 text-white px-4 py-2 text-xs flex justify-between items-center">
-                    <span className="flex items-center gap-2">
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                        </svg>
-                        SymptomSage has context from your previous visits.
-                    </span>
-                    <button
-                        onClick={async () => {
-                            if (confirm('Clear all session memory?') && user?.id) {
-                                await clearAllMemory(user.id);
-                                setPatientContext('');
-                            }
-                        }}
-                        className="hover:underline font-bold"
-                    >
-                        Clear Memory
-                    </button>
-                </div>
-            )}
-
-            <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm shrink-0">
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
+        <div className="flex h-screen bg-slate-50 text-slate-900 overflow-hidden font-sans">
+            {/* Sidebar Navigation */}
+            <aside className="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0 z-20">
+                <div className="p-6 border-b border-slate-100 flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-100 shrink-0">
+                        <Activity className="w-6 h-6 text-white" />
                     </div>
-                    <h1 className="text-xl font-bold text-slate-800 tracking-tight">SymptomSage AI</h1>
+                    <div>
+                        <h1 className="font-bold text-slate-800 leading-none">SymptomSage</h1>
+                        <span className="text-[10px] text-blue-600 font-bold uppercase tracking-widest">Medical AI</span>
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${status === ConnectionStatus.CONNECTED ? 'bg-green-100 text-green-700' :
-                        status === ConnectionStatus.CONNECTING ? 'bg-blue-100 text-blue-700' :
-                            status === ConnectionStatus.ERROR ? 'bg-red-100 text-red-700' :
-                                'bg-slate-200 text-slate-600'
-                        }`}>
-                        <span className={`w-2 h-2 rounded-full ${status === ConnectionStatus.CONNECTED ? 'bg-green-500 animate-pulse' :
-                            status === ConnectionStatus.CONNECTING ? 'bg-blue-500 animate-pulse' :
-                                status === ConnectionStatus.ERROR ? 'bg-red-500' :
-                                    'bg-slate-400'
-                            }`} />
-                        {status}
+                <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+                    <button
+                        onClick={() => setActiveView('consultation')}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeView === 'consultation'
+                            ? 'bg-blue-600 text-white shadow-md shadow-blue-100'
+                            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                            }`}
+                    >
+                        <MessageSquare className={`w-5 h-5 ${activeView === 'consultation' ? 'text-white' : 'text-slate-400 group-hover:text-blue-500'}`} />
+                        <span className="font-semibold">Consultation</span>
+                    </button>
+                    <button
+                        onClick={() => setActiveView('reports')}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeView === 'reports'
+                            ? 'bg-blue-600 text-white shadow-md shadow-blue-100'
+                            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                            }`}
+                    >
+                        <History className={`w-5 h-5 ${activeView === 'reports' ? 'text-white' : 'text-slate-400 group-hover:text-blue-500'}`} />
+                        <span className="font-semibold">Reports History</span>
+                    </button>
+
+                    <div className="pt-6 pb-2 px-4">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Resources</span>
                     </div>
                     <button
                         onClick={() => setShowDocs(true)}
-                        className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
-                        title="Documentation"
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all duration-200 group"
                     >
-                        <BookOpen className="w-6 h-6" />
+                        <BookOpen className="w-5 h-5 text-slate-400 group-hover:text-blue-500" />
+                        <span className="font-semibold">Documentation</span>
                     </button>
-                    <div className="pl-2 border-l border-slate-200">
-                        <UserButton afterSignOutUrl="/" />
-                    </div>
-                </div>
-            </header>
 
-            <main className="flex-1 flex flex-col md:flex-row p-4 md:p-6 gap-6 max-w-7xl mx-auto w-full overflow-hidden">
-                <section className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
-                    <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                        <h2 className="font-semibold text-slate-700">Live Consultation Transcript</h2>
-                        <button
-                            onClick={() => setMessages([])}
-                            className="text-xs text-slate-500 hover:text-slate-800 transition-colors"
-                        >
-                            Clear Log
-                        </button>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                        {messages.length === 0 ? (
-                            <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-4">
-                                <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-blue-500">
-                                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-medium text-slate-800">No session active</h3>
-                                    <p className="text-sm text-slate-500 max-w-xs mx-auto">
-                                        Press "Start Voice Triage" to begin describing your symptoms through voice.
-                                    </p>
-                                </div>
+                    {patientContext && (
+                        <div className="mt-8 mx-4 p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50">
+                            <div className="flex items-center gap-2 mb-2 text-blue-700">
+                                <Activity className="w-3.5 h-3.5" />
+                                <span className="text-[10px] font-bold uppercase tracking-wider">Clinical Memory</span>
                             </div>
-                        ) : (
-                            messages.map((msg) => (
-                                <div
-                                    key={msg.id}
-                                    className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
-                                >
-                                    <div className={`max-w-[85%] rounded-2xl px-4 py-2.5 shadow-sm text-sm ${msg.role === 'user'
-                                        ? 'bg-blue-600 text-white rounded-tr-none'
-                                        : 'bg-slate-100 text-slate-800 rounded-tl-none'
-                                        }`}>
-                                        {msg.text}
-                                    </div>
-                                    <span className="text-[10px] text-slate-400 mt-1 px-1">
-                                        {msg.role === 'user' ? 'You' : 'SymptomSage'} • {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                </div>
-                            ))
-                        )}
-                        {(currentInputText.current || currentOutputText.current) && (
-                            <div className="opacity-60 italic text-sm animate-pulse text-slate-500">
-                                Typing...
-                            </div>
-                        )}
-                    </div>
-                </section>
-
-                <section className="w-full md:w-80 flex flex-col gap-6 shrink-0">
-                    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col items-center justify-center space-y-6">
-                        <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Voice Interaction</h3>
-
-                        <div className="relative">
-                            <div className={`w-32 h-32 rounded-full border-4 flex items-center justify-center transition-all duration-500 ${isUserSpeaking ? 'border-blue-500 scale-105 shadow-lg shadow-blue-100' :
-                                isAssistantSpeaking ? 'border-indigo-500 scale-105 shadow-lg shadow-indigo-100' :
-                                    'border-slate-100'
-                                }`}>
-                                {status === ConnectionStatus.CONNECTED ? (
-                                    <div className="flex flex-col items-center">
-                                        <LiveVisualizer
-                                            isActive={isUserSpeaking || isAssistantSpeaking}
-                                            color={isUserSpeaking ? 'bg-blue-500' : 'bg-indigo-500'}
-                                        />
-                                        <span className="text-[10px] mt-2 font-bold uppercase tracking-tighter text-slate-400">
-                                            {isUserSpeaking ? 'User Listening' : isAssistantSpeaking ? 'AI Speaking' : 'Idle'}
-                                        </span>
-                                    </div>
-                                ) : (
-                                    <div className="text-slate-300">
-                                        <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                                        </svg>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="w-full space-y-3">
-                            {status !== ConnectionStatus.CONNECTED ? (
-                                <button
-                                    onClick={startSession}
-                                    disabled={status === ConnectionStatus.CONNECTING}
-                                    className="w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
-                                >
-                                    {status === ConnectionStatus.CONNECTING ? (
-                                        <span className="flex items-center gap-2">
-                                            <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                            </svg>
-                                            Connecting...
-                                        </span>
-                                    ) : (
-                                        <>
-                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            Start Voice Triage
-                                        </>
-                                    )}
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={endSession}
-                                    className="w-full py-4 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold rounded-xl shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2"
-                                >
-                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10h6v4H9z" />
-                                    </svg>
-                                    End Consultation
-                                </button>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
-                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">How to use</h3>
-                        <ul className="text-sm text-slate-600 space-y-2.5">
-                            <li className="flex gap-2">
-                                <span className="text-blue-500 font-bold">1.</span>
-                                Speak naturally about what's bothering you.
-                            </li>
-                            <li className="flex gap-2">
-                                <span className="text-blue-500 font-bold">2.</span>
-                                Mention when symptoms started and their severity.
-                            </li>
-                            <li className="flex gap-2">
-                                <span className="text-blue-500 font-bold">3.</span>
-                                Listen for follow-up questions from the AI.
-                            </li>
-                            <li className="flex gap-2">
-                                <span className="text-blue-500 font-bold">4.</span>
-                                The AI will provide a triage assessment.
-                            </li>
-                        </ul>
-                    </div>
-
-                    {error && (
-                        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700 animate-in fade-in slide-in-from-top-4">
-                            <div className="flex gap-2 font-bold mb-1">
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
-                                Error
-                            </div>
-                            {error}
+                            <p className="text-[10px] text-blue-600 leading-relaxed mb-3">
+                                SymptomSage is using context from your previous 5 assessments.
+                            </p>
                             <button
-                                onClick={startSession}
-                                className="block mt-2 font-bold underline hover:no-underline"
+                                onClick={async () => {
+                                    if (confirm('Clear all clinical memory?') && user?.id) {
+                                        await clearAllMemory(user.id);
+                                        setPatientContext('');
+                                        setAllReports([]);
+                                        setLatestReport(null);
+                                    }
+                                }}
+                                className="w-full py-2 bg-white text-blue-600 text-[10px] font-bold rounded-lg border border-blue-100 hover:bg-blue-600 hover:text-white transition-all active:scale-95 shadow-sm"
                             >
-                                Try Reconnecting
+                                Clear Clinical History
                             </button>
                         </div>
                     )}
-                </section>
-            </main>
+                </nav>
 
-            <footer className="bg-white border-t border-slate-200 py-3 px-6 text-center text-[10px] text-slate-400 shrink-0">
-                &copy; {new Date().getFullYear()} SymptomSage AI. Powering conversational triage with Gemini 2.5 Native Audio.
-                Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.
-            </footer>
+                <div className="p-4 border-t border-slate-100 bg-slate-50/50">
+                    <div className="flex items-center gap-3 p-2 bg-white rounded-xl border border-slate-200 shadow-sm">
+                        <UserButton afterSignOutUrl="/" />
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-slate-800 truncate">{user?.firstName || 'User'}</p>
+                            <p className="text-[10px] text-slate-500 truncate">{user?.primaryEmailAddress?.emailAddress}</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
 
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+                <div className="bg-amber-50 border-b border-amber-200 p-2 text-center text-[10px] font-medium text-amber-800 sticky top-0 z-10">
+                    ⚠️ IMPORTANT: AI assistant only. In case of emergency, call 911 immediately.
+                </div>
+
+                {activeView === 'consultation' ? (
+                    <>
+                        <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex items-center justify-between shrink-0 sticky top-0">
+                            <h2 className="text-xl font-bold text-slate-800">Voice Consultation</h2>
+                            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ring-1 ${status === ConnectionStatus.CONNECTED ? 'bg-green-50 text-green-700 ring-green-200' :
+                                status === ConnectionStatus.CONNECTING ? 'bg-blue-50 text-blue-700 ring-blue-200' :
+                                    status === ConnectionStatus.ERROR ? 'bg-red-50 text-red-700 ring-red-200' :
+                                        'bg-slate-100 text-slate-500 ring-slate-200'
+                                }`}>
+                                <span className={`w-2 h-2 rounded-full ${status === ConnectionStatus.CONNECTED ? 'bg-green-500 animate-pulse' :
+                                    status === ConnectionStatus.CONNECTING ? 'bg-blue-500 animate-pulse' :
+                                        status === ConnectionStatus.ERROR ? 'bg-red-500' :
+                                            'bg-slate-400'
+                                    }`} />
+                                {status}
+                            </div>
+                        </header>
+
+                        <main className="flex-1 flex flex-col md:flex-row p-6 gap-6 overflow-hidden">
+                            <section className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+                                <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
+                                    <h3 className="font-semibold text-slate-700 text-sm">Real-time Transcript</h3>
+                                    <div className="flex items-center gap-3">
+                                        {latestReport && (
+                                            <button
+                                                onClick={() => setShowReport(true)}
+                                                className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg transition-all active:scale-95"
+                                            >
+                                                <Activity className="w-3.5 h-3.5" />
+                                                Latest Report
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => setMessages([])}
+                                            className="text-xs text-slate-400 hover:text-slate-600 transition-colors font-medium"
+                                        >
+                                            Clear Log
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                                    {messages.length === 0 ? (
+                                        <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-6">
+                                            <div className="relative">
+                                                <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center text-blue-500 animate-pulse">
+                                                    <MessageSquare className="w-10 h-10" />
+                                                </div>
+                                                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-white rounded-lg shadow-md flex items-center justify-center border border-slate-100">
+                                                    <Activity className="w-4 h-4 text-green-500" />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-bold text-slate-800 mb-2">Ready to Assist</h3>
+                                                <p className="text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
+                                                    Press the button below to start your voice-guided medical triage. SymptomSage will listen and assess your symptoms.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        messages.map((msg) => (
+                                            <div
+                                                key={msg.id}
+                                                className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+                                            >
+                                                <div className={`max-w-[85%] rounded-2xl px-5 py-3 shadow-sm text-sm ${msg.role === 'user'
+                                                    ? 'bg-blue-600 text-white rounded-tr-none'
+                                                    : 'bg-slate-100 text-slate-800 rounded-tl-none border border-slate-200'
+                                                    }`}>
+                                                    {msg.text}
+                                                </div>
+                                                <span className="text-[10px] text-slate-400 mt-1.5 px-2 font-medium">
+                                                    {msg.role === 'user' ? 'Patient' : 'SymptomSage AI'} • {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            </div>
+                                        ))
+                                    )}
+                                    {(currentInputText.current || currentOutputText.current) && (
+                                        <div className="flex gap-2 items-center text-blue-500 px-4 py-2 bg-blue-50 rounded-full w-fit animate-pulse border border-blue-100">
+                                            <span className="relative flex h-2 w-2">
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                                            </span>
+                                            <span className="text-xs font-bold uppercase tracking-wider">AI Processing...</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </section>
+
+                            <section className="w-full md:w-80 flex flex-col gap-6 shrink-0">
+                                <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm flex flex-col items-center justify-center space-y-8 relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-4 opacity-5">
+                                        <Activity className="w-24 h-24" />
+                                    </div>
+
+                                    <div className="text-center">
+                                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Interaction</h3>
+                                        <p className="text-base font-bold text-slate-800">Voice Control</p>
+                                    </div>
+
+                                    <div className="relative group">
+                                        <div className={`w-40 h-40 rounded-full border-2 flex items-center justify-center transition-all duration-700 ${isUserSpeaking ? 'border-blue-500 scale-110 shadow-2xl shadow-blue-100 bg-blue-50/30' :
+                                            isAssistantSpeaking ? 'border-indigo-500 scale-110 shadow-2xl shadow-indigo-100 bg-indigo-50/30' :
+                                                'border-slate-100 bg-slate-50/20'
+                                            }`}>
+                                            {status === ConnectionStatus.CONNECTED ? (
+                                                <div className="flex flex-col items-center">
+                                                    <LiveVisualizer
+                                                        isActive={isUserSpeaking || isAssistantSpeaking}
+                                                        color={isUserSpeaking ? 'bg-blue-500' : 'bg-indigo-500'}
+                                                    />
+                                                    <div className="mt-4 flex flex-col items-center">
+                                                        <span className={`text-[10px] font-bold uppercase tracking-widest ${isUserSpeaking ? 'text-blue-600' : isAssistantSpeaking ? 'text-indigo-600' : 'text-slate-400'}`}>
+                                                            {isUserSpeaking ? 'Listening' : isAssistantSpeaking ? 'Speaking' : 'Waiting'}
+                                                        </span>
+                                                        <div className="flex gap-1 mt-1">
+                                                            {[1, 2, 3].map(i => (
+                                                                <div key={i} className={`w-1 h-1 rounded-full transition-all duration-300 ${isUserSpeaking || isAssistantSpeaking ? 'bg-current h-2 animate-bounce' : 'bg-slate-200'}`} style={{ animationDelay: `${i * 0.1}s` }} />
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="text-slate-200 group-hover:text-slate-300 transition-colors">
+                                                    <Activity className="w-16 h-16 stroke-[1.5]" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="w-full">
+                                        {status !== ConnectionStatus.CONNECTED ? (
+                                            <button
+                                                onClick={startSession}
+                                                disabled={status === ConnectionStatus.CONNECTING}
+                                                className="w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold rounded-2xl shadow-lg shadow-blue-200 transition-all active:scale-95 flex items-center justify-center gap-3"
+                                            >
+                                                {status === ConnectionStatus.CONNECTING ? (
+                                                    <>
+                                                        <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        </svg>
+                                                        Initializing...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                                                            <Activity className="w-4 h-4" />
+                                                        </div>
+                                                        Start Consultation
+                                                    </>
+                                                )}
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={endSession}
+                                                className="w-full py-4 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 font-bold rounded-2xl shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2"
+                                            >
+                                                <div className="w-8 h-8 rounded-full bg-red-100/50 flex items-center justify-center">
+                                                    <div className="w-3 h-3 bg-red-600 rounded-sm" />
+                                                </div>
+                                                Stop Session
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-xl shadow-blue-100">
+                                    <h3 className="text-xs font-bold text-white/60 uppercase tracking-widest mb-4">Patient Guidelines</h3>
+                                    <ul className="text-xs space-y-4">
+                                        <li className="flex gap-3">
+                                            <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center font-bold text-[10px] shrink-0">1</span>
+                                            <p className="leading-relaxed text-white/90">Describe your primary symptoms clearly and concisely.</p>
+                                        </li>
+                                        <li className="flex gap-3">
+                                            <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center font-bold text-[10px] shrink-0">2</span>
+                                            <p className="leading-relaxed text-white/90">Mention when the symptoms started and any relevant history.</p>
+                                        </li>
+                                        <li className="flex gap-3">
+                                            <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center font-bold text-[10px] shrink-0">3</span>
+                                            <p className="leading-relaxed text-white/90">Answer the AI's clarifying questions to help the assessment.</p>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                {error && (
+                                    <div className="bg-red-50 border border-red-100 rounded-2xl p-5 text-sm text-red-700 animate-in fade-in slide-in-from-top-4">
+                                        <div className="flex items-center gap-2 font-bold mb-2">
+                                            <Activity className="w-5 h-5 text-red-500" />
+                                            Connection Refused
+                                        </div>
+                                        <p className="text-xs opacity-80 leading-relaxed mb-4">{error}</p>
+                                        <button
+                                            onClick={startSession}
+                                            className="w-full py-2 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-xl transition-colors text-xs"
+                                        >
+                                            Try Reconnecting
+                                        </button>
+                                    </div>
+                                )}
+                            </section>
+                        </main>
+                    </>
+                ) : (
+                    <>
+                        <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-6 flex items-center justify-between shrink-0 sticky top-0">
+                            <div>
+                                <h2 className="text-2xl font-bold text-slate-800">Reports History</h2>
+                                <p className="text-sm text-slate-500">Access and manage your clinical triage assessments</p>
+                            </div>
+                            <div className="bg-blue-50 px-4 py-2 rounded-xl flex items-center gap-2 border border-blue-100">
+                                <History className="w-4 h-4 text-blue-600" />
+                                <span className="text-sm font-bold text-blue-700">{allReports.length} Reports Found</span>
+                            </div>
+                        </header>
+
+                        <main className="flex-1 overflow-y-auto p-8 relative">
+                            {isLoadingReports ? (
+                                <div className="h-full flex flex-col items-center justify-center">
+                                    <Activity className="w-12 h-12 text-blue-500 animate-spin mb-4" />
+                                    <p className="text-slate-500 font-medium">Loading your medical history...</p>
+                                </div>
+                            ) : allReports.length === 0 ? (
+                                <div className="h-full flex flex-col items-center justify-center text-center max-w-sm mx-auto space-y-6">
+                                    <div className="w-24 h-24 bg-slate-100 rounded-3xl flex items-center justify-center text-slate-300">
+                                        <Search className="w-10 h-10" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-slate-800 mb-2">No Reports Yet</h3>
+                                        <p className="text-sm text-slate-500 leading-relaxed">
+                                            Your clinical reports will appear here after you complete a consultation session.
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => setActiveView('consultation')}
+                                        className="px-6 py-3 bg-blue-600 text-white font-bold rounded-2xl shadow-lg shadow-blue-100 active:scale-95 transition-all text-sm"
+                                    >
+                                        Start Your First Session
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                                    {allReports.map((record) => (
+                                        <div
+                                            key={record.id}
+                                            className="bg-white rounded-3xl border border-slate-200 p-6 hover:shadow-xl hover:shadow-slate-200/50 transition-all group relative overflow-hidden flex flex-col"
+                                        >
+                                            <div className={`absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity`}>
+                                                <Activity className="w-20 h-20" />
+                                            </div>
+
+                                            <div className="flex items-start justify-between mb-6">
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <Clock className="w-3.5 h-3.5 text-slate-400" />
+                                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                                            {new Date(record.timestamp).toLocaleDateString(undefined, {
+                                                                month: 'short',
+                                                                day: 'numeric',
+                                                                year: 'numeric'
+                                                            })}
+                                                        </span>
+                                                    </div>
+                                                    <h4 className="text-lg font-bold text-slate-800 leading-tight pr-8">Triage Assessment</h4>
+                                                </div>
+                                                <div className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${record.report.severity === 'emergency' ? 'bg-red-50 text-red-600 ring-1 ring-red-100' :
+                                                    record.report.severity === 'high' ? 'bg-orange-50 text-orange-600 ring-1 ring-orange-100' :
+                                                        'bg-green-50 text-green-600 ring-1 ring-green-100'
+                                                    }`}>
+                                                    {record.report.severity}
+                                                </div>
+                                            </div>
+
+                                            <p className="text-sm text-slate-600 line-clamp-3 mb-6 flex-1 leading-relaxed">
+                                                {record.report.summary}
+                                            </p>
+
+                                            <div className="flex items-center gap-2 pt-6 border-t border-slate-100">
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedReport(record);
+                                                        setShowReport(true);
+                                                        setLatestReport(record.report);
+                                                    }}
+                                                    className="flex-1 py-2.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white font-bold rounded-xl transition-all text-xs flex items-center justify-center gap-2 shadow-sm"
+                                                >
+                                                    <Search className="w-3.5 h-3.5" />
+                                                    View Details
+                                                </button>
+                                                <button
+                                                    onClick={() => downloadReport(record.report)}
+                                                    className="p-2.5 bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-800 rounded-xl transition-all border border-slate-200 active:scale-95"
+                                                    title="Download Report"
+                                                >
+                                                    <Download className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </main>
+                    </>
+                )}
+            </div>
+
+            {/* Loading Overlay for Report Generation */}
+            {isGeneratingReport && (
+                <div className="fixed inset-0 bg-white/80 backdrop-blur-md z-[100] flex flex-col items-center justify-center animate-in fade-in duration-300">
+                    <div className="relative">
+                        <div className="w-24 h-24 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
+                        <Activity className="absolute inset-0 m-auto w-10 h-10 text-blue-600 animate-pulse" />
+                    </div>
+                    <div className="mt-8 text-center">
+                        <h3 className="text-xl font-bold text-slate-800 mb-2">Analyzing Consultation...</h3>
+                        <p className="text-sm text-slate-500 max-w-xs mx-auto">
+                            SymptomSage is generating your clinical triage assessment. This will take just a few seconds.
+                        </p>
+                    </div>
+                    <div className="mt-12 flex gap-4">
+                        <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                        <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                        <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modals & Overlays */}
             {showDocs && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -494,7 +828,7 @@ const Dashboard: React.FC = () => {
                             <h2 className="text-xl font-bold text-slate-800">SymptomSage AI Documentation</h2>
                             <button
                                 onClick={() => setShowDocs(false)}
-                                className="text-slate-400 hover:text-slate-600"
+                                className="text-slate-400 hover:text-slate-600 transition-colors"
                             >
                                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -507,43 +841,139 @@ const Dashboard: React.FC = () => {
                                 <p>SymptomSage AI is a state-of-the-art medical triage assistant powered by Gemini 2.5. It uses real-time audio to interact with users, helping them understand their health symptoms and directing them to the appropriate level of care.</p>
                             </section>
 
-                            <section className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                                <h3 className="text-lg font-bold text-blue-900 mb-2 font-mono uppercase text-sm tracking-widest">Training & Memory</h3>
-                                <p className="text-blue-800 text-sm">SymptomSage features a local "memory" system. After each session, the AI generates a concise summary of the conversation. These summaries are stored securely in your browser's local storage.</p>
-                                <ul className="list-disc ml-5 mt-2 text-blue-800 text-sm space-y-1">
-                                    <li><strong>Continuity:</strong> The next time you call, SymptomSage reads these summaries to remember your past symptoms and medical history.</li>
-                                    <li><strong>Privacy:</strong> All data stays on your device. Clearing browser data or clicking "Clear Memory" removes everything.</li>
+                            <section className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+                                <h3 className="text-sm font-bold text-blue-900 mb-2 uppercase tracking-widest">Medical History & Retrieval</h3>
+                                <p className="text-blue-800 text-sm">SymptomSage remembers your past visits to provide better clinical context. For every assessment, our AI retrieves up to 5 previous session summaries securely stored in your history.</p>
+                                <ul className="list-disc ml-5 mt-4 text-blue-800 text-[11px] space-y-2 opacity-80">
+                                    <li><strong>Continuity:</strong> Your symptoms are tracked over time.</li>
+                                    <li><strong>Data Privacy:</strong> All assessments are stored in your private history.</li>
+                                    <li><strong>Control:</strong> You can clear your entire history at any time.</li>
                                 </ul>
                             </section>
 
                             <section>
                                 <h3 className="text-lg font-bold text-slate-800 mb-2">How it Works</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className="p-3 bg-slate-50 rounded-lg">
-                                        <div className="font-bold text-blue-600 mb-1">1. Audio Stream</div>
+                                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                        <div className="font-bold text-blue-600 mb-1 text-xs uppercase tracking-tighter">1. Voice Stream</div>
                                         <p className="text-xs">Captures your voice and streams it to Gemini for immediate response.</p>
                                     </div>
-                                    <div className="p-3 bg-slate-50 rounded-lg">
-                                        <div className="font-bold text-blue-600 mb-1">2. Triage Logic</div>
-                                        <p className="text-xs">Follows clinical triage guidelines to assess severity and urgency.</p>
+                                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                        <div className="font-bold text-blue-600 mb-1 text-xs uppercase tracking-tighter">2. Triage Logic</div>
+                                        <p className="text-xs">Assesses severity, urgency, and necessary precautions.</p>
                                     </div>
-                                    <div className="p-3 bg-slate-50 rounded-lg">
-                                        <div className="font-bold text-blue-600 mb-1">3. Summarization</div>
-                                        <p className="text-xs">Distills the conversation into actionable medical context for future visits.</p>
+                                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                        <div className="font-bold text-blue-600 mb-1 text-xs uppercase tracking-tighter">3. Clinical Report</div>
+                                        <p className="text-xs">Generates a detailed summary and recommended tests.</p>
                                     </div>
                                 </div>
                             </section>
 
-                            <section className="border-t pt-4">
-                                <p className="text-xs text-slate-400">Disclaimer: SymptomSage is for informational purposes only. It is not a clinical tool and cannot provide official medical diagnoses.</p>
+                            <section className="border-t border-slate-100 pt-6">
+                                <p className="text-[10px] text-slate-400 italic">Disclaimer: SymptomSage is for informational purposes only. It is not a clinical tool and cannot provide official medical diagnoses.</p>
                             </section>
                         </div>
                         <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end">
                             <button
                                 onClick={() => setShowDocs(false)}
-                                className="px-6 py-2 bg-slate-800 text-white rounded-lg font-bold hover:bg-slate-700 transition-colors"
+                                className="px-8 py-2.5 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700 transition-all active:scale-95 shadow-lg shadow-slate-200"
                             >
                                 Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {showReport && latestReport && (
+                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-blue-600 text-white">
+                            <div className="flex items-center gap-3">
+                                <Activity className="w-6 h-6" />
+                                <h2 className="text-xl font-bold">Generated Clinical Report</h2>
+                            </div>
+                            <button
+                                onClick={() => setShowReport(false)}
+                                className="text-white/80 hover:text-white transition-colors"
+                            >
+                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div className="p-8 overflow-y-auto space-y-8">
+                            <section>
+                                <div className="flex items-center gap-2 mb-3">
+                                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${latestReport.severity === 'emergency' ? 'bg-red-100 text-red-700' :
+                                        latestReport.severity === 'high' ? 'bg-orange-100 text-orange-700' :
+                                            latestReport.severity === 'medium' ? 'bg-blue-100 text-blue-700' :
+                                                'bg-green-100 text-green-700'
+                                        }`}>
+                                        Severity: {latestReport.severity}
+                                    </span>
+                                </div>
+                                <h3 className="text-lg font-bold text-slate-800 mb-2">Summary</h3>
+                                <p className="text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                    {latestReport.summary}
+                                </p>
+                            </section>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <section>
+                                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">Precautions</h3>
+                                    <ul className="space-y-2">
+                                        {latestReport.precautions.map((item, i) => (
+                                            <li key={i} className="flex gap-3 text-sm text-slate-700 bg-red-50/50 p-2.5 rounded-lg border border-red-100/50">
+                                                <span className="text-red-500 font-bold">•</span>
+                                                {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </section>
+
+                                <section>
+                                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">General Tests</h3>
+                                    <ul className="space-y-2">
+                                        {latestReport.recommendedTests.map((item, i) => (
+                                            <li key={i} className="flex gap-3 text-sm text-slate-700 bg-blue-50/50 p-2.5 rounded-lg border border-blue-100/50">
+                                                <span className="text-blue-500 font-bold">•</span>
+                                                {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </section>
+                            </div>
+
+                            <section className="bg-amber-50 p-6 rounded-2xl border border-amber-100">
+                                <h3 className="text-sm font-bold text-amber-800 uppercase tracking-widest mb-3">Clinical Differentiator</h3>
+                                <p className="text-amber-900 text-sm italic leading-relaxed">
+                                    "{latestReport.differentiation}"
+                                </p>
+                            </section>
+
+                            <section className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                <p className="text-[10px] text-slate-400 text-center uppercase tracking-tighter">
+                                    DISCLAIMER: This report is AI-generated for informational purposes and does not constitute a medical diagnosis.
+                                </p>
+                            </section>
+                        </div>
+
+                        <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                            <button
+                                onClick={downloadReport}
+                                className="px-6 py-2.5 bg-white text-slate-700 border border-slate-200 rounded-xl font-bold hover:bg-slate-50 transition-all active:scale-95 flex items-center gap-2"
+                            >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                Download (TXT)
+                            </button>
+                            <button
+                                onClick={() => setShowReport(false)}
+                                className="px-6 py-2.5 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700 transition-all active:scale-95 shadow-lg shadow-slate-200"
+                            >
+                                Done
                             </button>
                         </div>
                     </div>

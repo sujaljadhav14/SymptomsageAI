@@ -1,12 +1,11 @@
-
-import { Message } from '../types';
+import { Message, ClinicalReport } from '../types';
 import { supabase } from './supabase';
 
 export interface PatientSummary {
   id: string;
   user_id: string;
   timestamp: string;
-  summary: string;
+  summary: string | ClinicalReport;
 }
 
 export const saveChatHistory = async (userId: string, messages: Message[]) => {
@@ -23,12 +22,12 @@ export const saveChatHistory = async (userId: string, messages: Message[]) => {
   }
 };
 
-export const savePatientSummary = async (userId: string, summary: string) => {
+export const savePatientSummary = async (userId: string, summary: string | ClinicalReport) => {
   if (!userId) return;
   try {
     const { error } = await supabase.from('summaries').insert({
       user_id: userId,
-      summary: summary,
+      summary: typeof summary === 'string' ? summary : JSON.stringify(summary),
       timestamp: new Date().toISOString()
     });
     if (error) throw error;
@@ -51,11 +50,85 @@ export const getPatientContext = async (userId: string): Promise<string> => {
     if (!data || data.length === 0) return '';
 
     return data
-      .map(s => `[Session ${new Date(s.timestamp).toLocaleDateString()}]: ${s.summary}`)
+      .map(s => {
+        let text = s.summary;
+        try {
+          const parsed = JSON.parse(s.summary);
+          if (parsed && typeof parsed === 'object' && parsed.summary) {
+            text = parsed.summary;
+          }
+        } catch (e) {
+          // Not JSON, use as is
+        }
+        return `[Session ${new Date(s.timestamp).toLocaleDateString()}]: ${text}`;
+      })
       .join('\n');
   } catch (e) {
     console.error('Failed to load patient context from Supabase', e);
     return '';
+  }
+};
+
+export const getLatestReport = async (userId: string): Promise<ClinicalReport | null> => {
+  if (!userId) return null;
+  try {
+    const { data, error } = await supabase
+      .from('summaries')
+      .select('summary')
+      .eq('user_id', userId)
+      .order('timestamp', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error || !data) return null;
+
+    try {
+      return JSON.parse(data.summary) as ClinicalReport;
+    } catch (e) {
+      return null;
+    }
+  } catch (e) {
+    return null;
+  }
+};
+
+export interface ClinicalReportRecord {
+  id: string;
+  timestamp: string;
+  report: ClinicalReport;
+}
+
+export const getAllReports = async (userId: string): Promise<ClinicalReportRecord[]> => {
+  if (!userId) return [];
+  try {
+    const { data, error } = await supabase
+      .from('summaries')
+      .select('id, summary, timestamp')
+      .eq('user_id', userId)
+      .order('timestamp', { ascending: false });
+
+    if (error || !data) return [];
+
+    return data
+      .map(d => {
+        try {
+          const report = JSON.parse(d.summary);
+          if (report && typeof report === 'object' && report.summary) {
+            return {
+              id: d.id,
+              timestamp: d.timestamp,
+              report: report as ClinicalReport
+            };
+          }
+        } catch (e) {
+          // Skip non-JSON summaries
+        }
+        return null;
+      })
+      .filter((r): r is ClinicalReportRecord => r !== null);
+  } catch (e) {
+    console.error('Failed to get all reports', e);
+    return [];
   }
 };
 
