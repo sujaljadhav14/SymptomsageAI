@@ -3,10 +3,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI, Modality, LiveServerMessage } from '@google/genai';
 import { decode, decodeAudioData, createBlob } from '../utils/audioHelpers';
 import LiveVisualizer from './LiveVisualizer';
-import { Message, ConnectionStatus, ClinicalReport } from '../types';
+import NotificationPanel from './NotificationPanel';
+import { Message, ConnectionStatus, ClinicalReport, Notification, NotificationType } from '../types';
 import { saveChatHistory, savePatientSummary, getPatientContext, clearAllMemory, getLatestReport, getAllReports, ClinicalReportRecord } from '../utils/storage';
 import { useUser, UserButton } from '@clerk/clerk-react';
-import { LogOut, BookOpen, Activity, History, MessageSquare, Download, ChevronRight, Search, Clock } from 'lucide-react';
+import { LogOut, BookOpen, Activity, History, MessageSquare, Download, ChevronRight, Search, Clock, Home, Bell, Sparkles, ArrowRight, Zap, Heart, Sun, Moon, CloudSun } from 'lucide-react';
 
 const MODEL_NAME = 'gemini-2.0-flash-exp';
 const SYSTEM_INSTRUCTION = `
@@ -32,11 +33,18 @@ const Dashboard: React.FC = () => {
     const [showDocs, setShowDocs] = useState(false);
     const [latestReport, setLatestReport] = useState<ClinicalReport | null>(null);
     const [showReport, setShowReport] = useState(false);
-    const [activeView, setActiveView] = useState<'consultation' | 'reports'>('consultation');
+    const [activeView, setActiveView] = useState<'home' | 'consultation' | 'reports'>('home');
     const [allReports, setAllReports] = useState<ClinicalReportRecord[]>([]);
     const [selectedReport, setSelectedReport] = useState<ClinicalReportRecord | null>(null);
     const [isLoadingReports, setIsLoadingReports] = useState(false);
     const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+
+    // AI-powered features state
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [aiGreeting, setAiGreeting] = useState('');
+    const [healthTips, setHealthTips] = useState<string[]>([]);
+    const [isLoadingTips, setIsLoadingTips] = useState(false);
 
     // Audio Context Refs
     const inputAudioContextRef = useRef<AudioContext | null>(null);
@@ -216,6 +224,127 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
         } finally {
             setIsGeneratingReport(false);
         }
+    };
+
+    // AI Helper Functions
+    const getTimeBasedGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return { text: 'Good Morning', icon: Sun };
+        if (hour < 17) return { text: 'Good Afternoon', icon: CloudSun };
+        return { text: 'Good Evening', icon: Moon };
+    };
+
+    const generateAIGreeting = useCallback(() => {
+        const greeting = getTimeBasedGreeting();
+        const firstName = user?.firstName || 'there';
+        setAiGreeting(`${greeting.text}, ${firstName}! 👋`);
+    }, [user?.firstName]);
+
+    const generateHealthTips = useCallback(async () => {
+        if (isLoadingTips) return;
+        setIsLoadingTips(true);
+
+        try {
+            const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY || '';
+            if (!apiKey || apiKey === 'PLACEHOLDER_API_KEY') {
+                setHealthTips([
+                    "Stay hydrated by drinking at least 8 glasses of water daily",
+                    "Take short breaks every hour if working at a desk",
+                    "Aim for 7-9 hours of quality sleep each night"
+                ]);
+                return;
+            }
+
+            const contextPrompt = patientContext
+                ? `Based on this patient's history: ${patientContext.slice(0, 500)}, provide 3 personalized health tips.`
+                : 'Provide 3 general preventive health tips for an adult.';
+
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{
+                            text: `${contextPrompt} Return ONLY a JSON array of 3 strings, each being a short health tip (max 15 words each). Example: ["tip1", "tip2", "tip3"]`
+                        }]
+                    }]
+                })
+            });
+
+            const data = await response.json();
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            const jsonMatch = text.match(/\[[\s\S]*\]/);
+            if (jsonMatch) {
+                const tips = JSON.parse(jsonMatch[0]);
+                setHealthTips(tips.slice(0, 3));
+            }
+        } catch (e) {
+            console.warn('Failed to generate health tips:', e);
+            setHealthTips([
+                "Stay hydrated throughout the day",
+                "Practice mindful breathing for stress relief",
+                "Regular movement helps boost energy levels"
+            ]);
+        } finally {
+            setIsLoadingTips(false);
+        }
+    }, [patientContext, isLoadingTips]);
+
+    const generateNotifications = useCallback(() => {
+        const newNotifications: Notification[] = [];
+
+        // Add follow-up notification if there's a recent report
+        if (latestReport) {
+            newNotifications.push({
+                id: 'follow-up-1',
+                type: NotificationType.FOLLOW_UP,
+                title: 'Assessment Follow-up',
+                message: `Your last assessment indicated ${latestReport.severity} severity. Remember to monitor your symptoms.`,
+                timestamp: new Date(),
+                isRead: false
+            });
+
+            if (latestReport.precautions.length > 0) {
+                newNotifications.push({
+                    id: 'reminder-1',
+                    type: NotificationType.REMINDER,
+                    title: 'Health Reminder',
+                    message: latestReport.precautions[0],
+                    timestamp: new Date(),
+                    isRead: false
+                });
+            }
+        }
+
+        // Add general health tip
+        newNotifications.push({
+            id: 'tip-1',
+            type: NotificationType.HEALTH_TIP,
+            title: 'Daily Wellness Tip',
+            message: 'Regular health check-ins help you stay ahead of potential issues. Consider scheduling periodic assessments.',
+            timestamp: new Date(),
+            isRead: false
+        });
+
+        // Add insight if user has multiple reports
+        if (allReports.length >= 2) {
+            newNotifications.push({
+                id: 'insight-1',
+                type: NotificationType.INSIGHT,
+                title: 'Health Trend',
+                message: `You've completed ${allReports.length} assessments. SymptomSage is building a comprehensive view of your health.`,
+                timestamp: new Date(),
+                isRead: false
+            });
+        }
+
+        setNotifications(newNotifications);
+    }, [latestReport, allReports.length]);
+
+    const markNotificationAsRead = (id: string) => {
+        setNotifications(prev =>
+            prev.map(n => n.id === id ? { ...n, isRead: true } : n)
+        );
     };
 
     const startSession = async () => {
@@ -402,6 +531,15 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
         return () => cleanup();
     }, [user]);
 
+    // Initialize AI features when on home view
+    useEffect(() => {
+        if (activeView === 'home') {
+            generateAIGreeting();
+            generateHealthTips();
+            generateNotifications();
+        }
+    }, [activeView, generateAIGreeting, generateHealthTips, generateNotifications]);
+
     return (
         <div className="flex h-screen bg-slate-50 text-slate-900 overflow-hidden font-sans">
             {/* Sidebar Navigation */}
@@ -417,6 +555,16 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                 </div>
 
                 <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+                    <button
+                        onClick={() => setActiveView('home')}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeView === 'home'
+                            ? 'bg-blue-600 text-white shadow-md shadow-blue-100'
+                            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                            }`}
+                    >
+                        <Home className={`w-5 h-5 ${activeView === 'home' ? 'text-white' : 'text-slate-400 group-hover:text-blue-500'}`} />
+                        <span className="font-semibold">Home</span>
+                    </button>
                     <button
                         onClick={() => setActiveView('consultation')}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeView === 'consultation'
@@ -492,7 +640,160 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                     ⚠️ IMPORTANT: AI assistant only. In case of emergency, call 911 immediately.
                 </div>
 
-                {activeView === 'consultation' ? (
+                {/* Notification Panel */}
+                <NotificationPanel
+                    isOpen={showNotifications}
+                    onClose={() => setShowNotifications(false)}
+                    notifications={notifications}
+                    onMarkAsRead={markNotificationAsRead}
+                />
+
+                {activeView === 'home' ? (
+                    <>
+                        {/* Home Header */}
+                        <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex items-center justify-between shrink-0 sticky top-0 z-10">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
+                                    <Activity className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                    <h1 className="text-xl font-bold text-slate-800">SymptomSage</h1>
+                                    <span className="text-[10px] text-blue-600 font-bold uppercase tracking-widest">AI Health Assistant</span>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setShowNotifications(true)}
+                                className="relative p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all group"
+                            >
+                                <Bell className="w-5 h-5 text-slate-600 group-hover:text-blue-600" />
+                                {notifications.filter(n => !n.isRead).length > 0 && (
+                                    <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
+                                )}
+                            </button>
+                        </header>
+
+                        <main className="flex-1 overflow-y-auto p-8">
+                            <div className="max-w-4xl mx-auto space-y-8">
+                                {/* AI Greeting */}
+                                <div className="text-center space-y-2">
+                                    <h2 className="text-3xl font-bold text-slate-800">
+                                        {aiGreeting || 'Welcome back! 👋'}
+                                    </h2>
+                                    <p className="text-slate-500">
+                                        How can SymptomSage help you today?
+                                    </p>
+                                </div>
+
+                                {/* Primary & Secondary CTAs */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <button
+                                        onClick={() => setActiveView('consultation')}
+                                        className="group relative overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-8 rounded-3xl shadow-xl shadow-blue-200 hover:shadow-2xl hover:shadow-blue-300 transition-all active:scale-[0.98]"
+                                    >
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                                        <div className="relative">
+                                            <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-4">
+                                                <Activity className="w-7 h-7" />
+                                            </div>
+                                            <h3 className="text-xl font-bold mb-2">Start Health Assessment</h3>
+                                            <p className="text-white/70 text-sm mb-4">
+                                                Begin a voice-guided consultation with our AI triage assistant
+                                            </p>
+                                            <div className="flex items-center gap-2 text-sm font-semibold">
+                                                <span>Start Now</span>
+                                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                            </div>
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        onClick={() => setActiveView('reports')}
+                                        className="group relative overflow-hidden bg-white border-2 border-slate-200 p-8 rounded-3xl hover:border-blue-200 hover:shadow-xl transition-all active:scale-[0.98]"
+                                    >
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -translate-y-1/2 translate-x-1/2" />
+                                        <div className="relative">
+                                            <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-blue-50 transition-colors">
+                                                <History className="w-7 h-7 text-slate-600 group-hover:text-blue-600" />
+                                            </div>
+                                            <h3 className="text-xl font-bold text-slate-800 mb-2">View Previous Reports</h3>
+                                            <p className="text-slate-500 text-sm mb-4">
+                                                Access your clinical triage history and assessments
+                                            </p>
+                                            <div className="flex items-center gap-2 text-sm font-semibold text-blue-600">
+                                                <span>View All</span>
+                                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                            </div>
+                                        </div>
+                                    </button>
+                                </div>
+
+                                {/* AI Health Tips */}
+                                <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl p-6 border border-amber-100">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
+                                            <Sparkles className="w-5 h-5 text-amber-600" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-slate-800">AI Health Tips</h3>
+                                            <p className="text-xs text-slate-500">Personalized wellness suggestions</p>
+                                        </div>
+                                    </div>
+                                    {isLoadingTips ? (
+                                        <div className="flex items-center gap-3 text-amber-600">
+                                            <div className="w-4 h-4 border-2 border-amber-300 border-t-amber-600 rounded-full animate-spin" />
+                                            <span className="text-sm">Generating personalized tips...</span>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                            {healthTips.map((tip, index) => (
+                                                <div key={index} className="bg-white/70 p-4 rounded-xl border border-amber-100/50">
+                                                    <div className="flex items-start gap-2">
+                                                        <Zap className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                                                        <p className="text-sm text-slate-700">{tip}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Quick Insights from Latest Report */}
+                                {latestReport && (
+                                    <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                                                    <Heart className="w-5 h-5 text-blue-600" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-slate-800">Latest Assessment</h3>
+                                                    <p className="text-xs text-slate-500">Quick insights from your recent consultation</p>
+                                                </div>
+                                            </div>
+                                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${latestReport.severity === 'emergency' ? 'bg-red-100 text-red-700' :
+                                                    latestReport.severity === 'high' ? 'bg-orange-100 text-orange-700' :
+                                                        latestReport.severity === 'medium' ? 'bg-blue-100 text-blue-700' :
+                                                            'bg-green-100 text-green-700'
+                                                }`}>
+                                                {latestReport.severity}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm text-slate-600 leading-relaxed mb-4 line-clamp-2">
+                                            {latestReport.summary}
+                                        </p>
+                                        <button
+                                            onClick={() => setShowReport(true)}
+                                            className="text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                                        >
+                                            View Full Report
+                                            <ChevronRight className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </main>
+                    </>
+                ) : activeView === 'consultation' ? (
                     <>
                         <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex items-center justify-between shrink-0 sticky top-0">
                             <h2 className="text-xl font-bold text-slate-800">Voice Consultation</h2>
