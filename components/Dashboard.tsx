@@ -593,17 +593,17 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                     </div>
                     <button
                         onClick={() => navigate('/app/hospital-locator')}
-                        className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
-                        title="Hospital Locator"
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all duration-200 group"
                     >
-                        <MapPin className="w-6 h-6" />
+                        <MapPin className="w-5 h-5 text-slate-400 group-hover:text-blue-500" />
+                        <span className="font-semibold">Hospital Locator</span>
                     </button>
                     <button
                         onClick={() => navigate('/app/image-analysis')}
-                        className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
-                        title="Image Analysis"
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all duration-200 group"
                     >
-                        <Camera className="w-6 h-6" />
+                        <Camera className="w-5 h-5 text-slate-400 group-hover:text-blue-500" />
+                        <span className="font-semibold">Image Analysis</span>
                     </button>
                     <button
                         onClick={() => setShowDocs(true)}
