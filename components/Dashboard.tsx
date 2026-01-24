@@ -6,7 +6,8 @@ import LiveVisualizer from './LiveVisualizer';
 import { Message, ConnectionStatus } from '../types';
 import { saveChatHistory, savePatientSummary, getPatientContext, clearAllMemory } from '../utils/storage';
 import { useUser, UserButton, SignOutButton } from '@clerk/clerk-react';
-import { LogOut, BookOpen, Activity } from 'lucide-react';
+import { LogOut, BookOpen, Activity, MapPin, Camera } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const MODEL_NAME = 'gemini-2.5-flash-native-audio-preview-12-2025';
 const SYSTEM_INSTRUCTION = `
@@ -23,6 +24,7 @@ Guidelines:
 
 const Dashboard: React.FC = () => {
     const { user } = useUser();
+    const navigate = useNavigate();
     const [status, setStatus] = useState<ConnectionStatus>(ConnectionStatus.DISCONNECTED);
     const [messages, setMessages] = useState<Message[]>([]);
     const [isUserSpeaking, setIsUserSpeaking] = useState(false);
@@ -305,6 +307,20 @@ const Dashboard: React.FC = () => {
                             }`} />
                         {status}
                     </div>
+                    <button
+                        onClick={() => navigate('/app/hospital-locator')}
+                        className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
+                        title="Hospital Locator"
+                    >
+                        <MapPin className="w-6 h-6" />
+                    </button>
+                    <button
+                        onClick={() => navigate('/app/image-analysis')}
+                        className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
+                        title="Image Analysis"
+                    >
+                        <Camera className="w-6 h-6" />
+                    </button>
                     <button
                         onClick={() => setShowDocs(true)}
                         className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
