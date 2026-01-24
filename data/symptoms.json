@@ -1,0 +1,461 @@
+{
+    "headache": {
+        "conditions": [
+            "migraine",
+            "tension_headache",
+            "sinusitis",
+            "hypertension",
+            "dehydration"
+        ],
+        "isKeySymptom": [
+            "migraine",
+            "tension_headache"
+        ]
+    },
+    "fever": {
+        "conditions": [
+            "flu",
+            "covid",
+            "common_cold",
+            "malaria",
+            "typhoid",
+            "urinary_tract_infection"
+        ],
+        "isKeySymptom": [
+            "flu",
+            "malaria",
+            "typhoid"
+        ]
+    },
+    "cough": {
+        "conditions": [
+            "flu",
+            "covid",
+            "common_cold",
+            "bronchitis",
+            "asthma",
+            "pneumonia"
+        ],
+        "isKeySymptom": [
+            "bronchitis",
+            "pneumonia"
+        ]
+    },
+    "chest_pain": {
+        "conditions": [
+            "angina",
+            "gerd",
+            "muscle_strain",
+            "anxiety",
+            "costochondritis"
+        ],
+        "isKeySymptom": [
+            "angina"
+        ]
+    },
+    "fatigue": {
+        "conditions": [
+            "anemia",
+            "diabetes",
+            "thyroid_disorder",
+            "depression",
+            "sleep_disorder",
+            "dehydration"
+        ],
+        "isKeySymptom": [
+            "anemia",
+            "thyroid_disorder"
+        ]
+    },
+    "nausea": {
+        "conditions": [
+            "gastritis",
+            "food_poisoning",
+            "migraine",
+            "pregnancy",
+            "gastroenteritis"
+        ],
+        "isKeySymptom": [
+            "food_poisoning",
+            "gastroenteritis"
+        ]
+    },
+    "vomiting": {
+        "conditions": [
+            "gastritis",
+            "food_poisoning",
+            "gastroenteritis",
+            "migraine",
+            "appendicitis"
+        ],
+        "isKeySymptom": [
+            "food_poisoning",
+            "gastroenteritis"
+        ]
+    },
+    "diarrhea": {
+        "conditions": [
+            "gastroenteritis",
+            "food_poisoning",
+            "ibs",
+            "cholera",
+            "typhoid"
+        ],
+        "isKeySymptom": [
+            "gastroenteritis",
+            "cholera"
+        ]
+    },
+    "abdominal_pain": {
+        "conditions": [
+            "gastritis",
+            "appendicitis",
+            "ibs",
+            "kidney_stones",
+            "gallstones",
+            "food_poisoning"
+        ],
+        "isKeySymptom": [
+            "appendicitis",
+            "kidney_stones"
+        ]
+    },
+    "back_pain": {
+        "conditions": [
+            "muscle_strain",
+            "herniated_disc",
+            "kidney_stones",
+            "poor_posture",
+            "arthritis"
+        ],
+        "isKeySymptom": [
+            "herniated_disc",
+            "kidney_stones"
+        ]
+    },
+    "joint_pain": {
+        "conditions": [
+            "arthritis",
+            "gout",
+            "lupus",
+            "flu",
+            "dengue"
+        ],
+        "isKeySymptom": [
+            "arthritis",
+            "gout"
+        ]
+    },
+    "sore_throat": {
+        "conditions": [
+            "common_cold",
+            "flu",
+            "strep_throat",
+            "tonsillitis",
+            "covid"
+        ],
+        "isKeySymptom": [
+            "strep_throat",
+            "tonsillitis"
+        ]
+    },
+    "runny_nose": {
+        "conditions": [
+            "common_cold",
+            "flu",
+            "allergies",
+            "sinusitis"
+        ],
+        "isKeySymptom": [
+            "common_cold",
+            "allergies"
+        ]
+    },
+    "shortness_of_breath": {
+        "conditions": [
+            "asthma",
+            "pneumonia",
+            "anxiety",
+            "anemia",
+            "heart_failure"
+        ],
+        "isKeySymptom": [
+            "asthma",
+            "pneumonia"
+        ]
+    },
+    "dizziness": {
+        "conditions": [
+            "dehydration",
+            "anemia",
+            "vertigo",
+            "hypertension",
+            "hypoglycemia"
+        ],
+        "isKeySymptom": [
+            "vertigo",
+            "hypoglycemia"
+        ]
+    },
+    "rash": {
+        "conditions": [
+            "allergies",
+            "eczema",
+            "chicken_pox",
+            "measles",
+            "dengue"
+        ],
+        "isKeySymptom": [
+            "chicken_pox",
+            "measles"
+        ]
+    },
+    "swelling": {
+        "conditions": [
+            "allergies",
+            "injury",
+            "arthritis",
+            "kidney_disease",
+            "heart_failure"
+        ],
+        "isKeySymptom": [
+            "kidney_disease"
+        ]
+    },
+    "weight_loss": {
+        "conditions": [
+            "diabetes",
+            "thyroid_disorder",
+            "cancer",
+            "depression",
+            "tuberculosis"
+        ],
+        "isKeySymptom": [
+            "thyroid_disorder",
+            "tuberculosis"
+        ]
+    },
+    "weight_gain": {
+        "conditions": [
+            "thyroid_disorder",
+            "diabetes",
+            "pcos",
+            "depression"
+        ],
+        "isKeySymptom": [
+            "thyroid_disorder",
+            "pcos"
+        ]
+    },
+    "frequent_urination": {
+        "conditions": [
+            "diabetes",
+            "urinary_tract_infection",
+            "kidney_disease",
+            "enlarged_prostate"
+        ],
+        "isKeySymptom": [
+            "diabetes",
+            "urinary_tract_infection"
+        ]
+    },
+    "burning_urination": {
+        "conditions": [
+            "urinary_tract_infection",
+            "kidney_stones",
+            "std"
+        ],
+        "isKeySymptom": [
+            "urinary_tract_infection"
+        ]
+    },
+    "body_aches": {
+        "conditions": [
+            "flu",
+            "covid",
+            "dengue",
+            "malaria",
+            "fibromyalgia"
+        ],
+        "isKeySymptom": [
+            "dengue",
+            "fibromyalgia"
+        ]
+    },
+    "loss_of_appetite": {
+        "conditions": [
+            "depression",
+            "gastritis",
+            "hepatitis",
+            "cancer",
+            "tuberculosis"
+        ],
+        "isKeySymptom": [
+            "hepatitis"
+        ]
+    },
+    "insomnia": {
+        "conditions": [
+            "anxiety",
+            "depression",
+            "sleep_disorder",
+            "thyroid_disorder"
+        ],
+        "isKeySymptom": [
+            "sleep_disorder"
+        ]
+    },
+    "excessive_thirst": {
+        "conditions": [
+            "diabetes",
+            "dehydration",
+            "kidney_disease"
+        ],
+        "isKeySymptom": [
+            "diabetes"
+        ]
+    },
+    "blurred_vision": {
+        "conditions": [
+            "diabetes",
+            "hypertension",
+            "migraine",
+            "cataracts"
+        ],
+        "isKeySymptom": [
+            "diabetes",
+            "cataracts"
+        ]
+    },
+    "numbness": {
+        "conditions": [
+            "diabetes",
+            "carpal_tunnel",
+            "herniated_disc",
+            "stroke"
+        ],
+        "isKeySymptom": [
+            "carpal_tunnel"
+        ]
+    },
+    "palpitations": {
+        "conditions": [
+            "anxiety",
+            "thyroid_disorder",
+            "anemia",
+            "arrhythmia"
+        ],
+        "isKeySymptom": [
+            "arrhythmia",
+            "thyroid_disorder"
+        ]
+    },
+    "sweating": {
+        "conditions": [
+            "fever",
+            "anxiety",
+            "thyroid_disorder",
+            "menopause",
+            "hypoglycemia"
+        ],
+        "isKeySymptom": [
+            "hypoglycemia"
+        ]
+    },
+    "chills": {
+        "conditions": [
+            "flu",
+            "malaria",
+            "urinary_tract_infection",
+            "pneumonia"
+        ],
+        "isKeySymptom": [
+            "malaria"
+        ]
+    },
+    "loss_of_smell": {
+        "conditions": [
+            "covid",
+            "sinusitis",
+            "common_cold"
+        ],
+        "isKeySymptom": [
+            "covid"
+        ]
+    },
+    "loss_of_taste": {
+        "conditions": [
+            "covid",
+            "sinusitis",
+            "zinc_deficiency"
+        ],
+        "isKeySymptom": [
+            "covid"
+        ]
+    },
+    "muscle_weakness": {
+        "conditions": [
+            "anemia",
+            "thyroid_disorder",
+            "fibromyalgia",
+            "vitamin_d_deficiency"
+        ],
+        "isKeySymptom": [
+            "vitamin_d_deficiency"
+        ]
+    },
+    "constipation": {
+        "conditions": [
+            "ibs",
+            "dehydration",
+            "thyroid_disorder",
+            "poor_diet"
+        ],
+        "isKeySymptom": [
+            "ibs"
+        ]
+    },
+    "bloating": {
+        "conditions": [
+            "ibs",
+            "gastritis",
+            "food_intolerance",
+            "pcos"
+        ],
+        "isKeySymptom": [
+            "ibs",
+            "food_intolerance"
+        ]
+    },
+    "heartburn": {
+        "conditions": [
+            "gerd",
+            "gastritis",
+            "hiatal_hernia"
+        ],
+        "isKeySymptom": [
+            "gerd"
+        ]
+    },
+    "light_sensitivity": {
+        "conditions": [
+            "migraine",
+            "meningitis",
+            "eye_strain"
+        ],
+        "isKeySymptom": [
+            "migraine",
+            "meningitis"
+        ]
+    },
+    "stiff_neck": {
+        "conditions": [
+            "meningitis",
+            "muscle_strain",
+            "poor_posture"
+        ],
+        "isKeySymptom": [
+            "meningitis"
+        ]
+    }
+}

@@ -36,3 +36,81 @@ export interface Notification {
   timestamp: Date;
   isRead: boolean;
 }
+
+// ============================================
+// OFFLINE HEALTH ASSESSMENT TYPES
+// ============================================
+
+// Data structure types (matching JSON files)
+export interface SymptomData {
+  conditions: string[];
+  isKeySymptom: string[];
+}
+
+export interface ConditionData {
+  name: string;
+  riskLevel: 'low' | 'moderate' | 'high';
+  description: string;
+  commonSymptoms: string[];
+  tests: string[];
+  specialties: string[];
+  prevalence: 'very_common' | 'common' | 'moderate' | 'rare' | 'regional';
+}
+
+export interface TestData {
+  name: string;
+  cost: 'low' | 'medium' | 'high';
+  priority: 'screening' | 'diagnostic' | 'specialized';
+  reason: string;
+  turnaround: string;
+}
+
+export interface RedFlagData {
+  symptoms: string[];
+  emergencyMessage: string;
+  keywords: Record<string, string[]>;
+  instructions: string[];
+}
+
+// User input types
+export interface AssessmentInput {
+  symptoms: string[];
+  duration: string;
+  severity?: 'mild' | 'moderate' | 'severe';
+  additionalNotes?: string;
+}
+
+// Scoring and matching types
+export interface ConditionMatch {
+  conditionId: string;
+  name: string;
+  score: number;
+  matchedSymptoms: string[];
+  riskLevel: 'low' | 'moderate' | 'high';
+  description: string;
+  confidence: 'possible' | 'likely' | 'very_likely';
+}
+
+export interface TestSuggestion {
+  testId: string;
+  name: string;
+  cost: 'low' | 'medium' | 'high';
+  priority: 'screening' | 'diagnostic' | 'specialized';
+  reason: string;
+  relevantConditions: string[];
+}
+
+// Final output type
+export interface AssessmentResult {
+  riskLevel: 'low' | 'moderate' | 'high' | 'emergency';
+  isEmergency: boolean;
+  possibleConditions: ConditionMatch[];
+  reasoning: string[];
+  testSuggestions: TestSuggestion[];
+  nextSteps: string[];
+  matchedSymptoms: string[];
+  unmatchedSymptoms: string[];
+  disclaimer: string;
+  timestamp: Date;
+}
+

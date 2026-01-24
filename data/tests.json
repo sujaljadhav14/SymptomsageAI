@@ -1,0 +1,387 @@
+{
+    "cbc": {
+        "name": "Complete Blood Count (CBC)",
+        "cost": "low",
+        "priority": "screening",
+        "reason": "Evaluates overall health, detects infections, anemia, and blood disorders",
+        "turnaround": "Same day"
+    },
+    "blood_glucose": {
+        "name": "Blood Glucose Test",
+        "cost": "low",
+        "priority": "screening",
+        "reason": "Measures blood sugar levels to detect diabetes or hypoglycemia",
+        "turnaround": "Same day"
+    },
+    "hba1c": {
+        "name": "HbA1c (Glycated Hemoglobin)",
+        "cost": "low",
+        "priority": "diagnostic",
+        "reason": "Shows average blood sugar over past 2-3 months for diabetes monitoring",
+        "turnaround": "1-2 days"
+    },
+    "urine_test": {
+        "name": "Urinalysis",
+        "cost": "low",
+        "priority": "screening",
+        "reason": "Detects urinary infections, kidney issues, and metabolic conditions",
+        "turnaround": "Same day"
+    },
+    "urine_culture": {
+        "name": "Urine Culture",
+        "cost": "low",
+        "priority": "diagnostic",
+        "reason": "Identifies specific bacteria causing urinary tract infections",
+        "turnaround": "2-3 days"
+    },
+    "thyroid_panel": {
+        "name": "Thyroid Function Panel",
+        "cost": "medium",
+        "priority": "diagnostic",
+        "reason": "Measures thyroid hormones (T3, T4, TSH) to assess thyroid function",
+        "turnaround": "1-2 days"
+    },
+    "tsh_test": {
+        "name": "TSH Test",
+        "cost": "low",
+        "priority": "screening",
+        "reason": "Initial screening for thyroid disorders",
+        "turnaround": "Same day"
+    },
+    "chest_xray": {
+        "name": "Chest X-Ray",
+        "cost": "medium",
+        "priority": "diagnostic",
+        "reason": "Visualizes lungs and heart to detect infections, tumors, or abnormalities",
+        "turnaround": "Same day"
+    },
+    "ecg": {
+        "name": "Electrocardiogram (ECG/EKG)",
+        "cost": "low",
+        "priority": "diagnostic",
+        "reason": "Records heart's electrical activity to detect arrhythmias and heart conditions",
+        "turnaround": "Immediate"
+    },
+    "stress_test": {
+        "name": "Cardiac Stress Test",
+        "cost": "high",
+        "priority": "specialized",
+        "reason": "Evaluates heart function during physical exertion",
+        "turnaround": "Same day"
+    },
+    "angiography": {
+        "name": "Coronary Angiography",
+        "cost": "high",
+        "priority": "specialized",
+        "reason": "Visualizes heart blood vessels to detect blockages",
+        "turnaround": "Same day"
+    },
+    "blood_pressure": {
+        "name": "Blood Pressure Measurement",
+        "cost": "low",
+        "priority": "screening",
+        "reason": "Checks for hypertension or hypotension",
+        "turnaround": "Immediate"
+    },
+    "stool_test": {
+        "name": "Stool Analysis",
+        "cost": "low",
+        "priority": "diagnostic",
+        "reason": "Detects infections, parasites, or digestive issues",
+        "turnaround": "1-2 days"
+    },
+    "endoscopy": {
+        "name": "Upper GI Endoscopy",
+        "cost": "high",
+        "priority": "specialized",
+        "reason": "Visualizes esophagus, stomach, and duodenum for ulcers or inflammation",
+        "turnaround": "Same day"
+    },
+    "colonoscopy": {
+        "name": "Colonoscopy",
+        "cost": "high",
+        "priority": "specialized",
+        "reason": "Examines the colon for polyps, inflammation, or cancer",
+        "turnaround": "Same day"
+    },
+    "h_pylori_test": {
+        "name": "H. Pylori Test",
+        "cost": "low",
+        "priority": "diagnostic",
+        "reason": "Detects Helicobacter pylori bacteria causing stomach ulcers",
+        "turnaround": "Same day"
+    },
+    "flu_test": {
+        "name": "Influenza Rapid Test",
+        "cost": "low",
+        "priority": "diagnostic",
+        "reason": "Quickly detects influenza A or B viruses",
+        "turnaround": "30 minutes"
+    },
+    "covid_test": {
+        "name": "COVID-19 RT-PCR Test",
+        "cost": "medium",
+        "priority": "diagnostic",
+        "reason": "Detects active coronavirus infection",
+        "turnaround": "1-2 days"
+    },
+    "malaria_smear": {
+        "name": "Malaria Blood Smear",
+        "cost": "low",
+        "priority": "diagnostic",
+        "reason": "Identifies malaria parasites in blood under microscope",
+        "turnaround": "1-2 hours"
+    },
+    "rapid_malaria_test": {
+        "name": "Rapid Malaria Antigen Test",
+        "cost": "low",
+        "priority": "screening",
+        "reason": "Quick detection of malaria antigens",
+        "turnaround": "15-20 minutes"
+    },
+    "dengue_test": {
+        "name": "Dengue NS1 Antigen Test",
+        "cost": "low",
+        "priority": "diagnostic",
+        "reason": "Detects dengue virus in early infection stage",
+        "turnaround": "Same day"
+    },
+    "platelet_count": {
+        "name": "Platelet Count",
+        "cost": "low",
+        "priority": "diagnostic",
+        "reason": "Monitors platelet levels, critical in dengue and bleeding disorders",
+        "turnaround": "Same day"
+    },
+    "widal_test": {
+        "name": "Widal Test",
+        "cost": "low",
+        "priority": "screening",
+        "reason": "Detects antibodies for typhoid fever",
+        "turnaround": "Same day"
+    },
+    "blood_culture": {
+        "name": "Blood Culture",
+        "cost": "medium",
+        "priority": "diagnostic",
+        "reason": "Identifies bacteria or fungi in bloodstream causing infection",
+        "turnaround": "2-5 days"
+    },
+    "ultrasound": {
+        "name": "Ultrasound",
+        "cost": "medium",
+        "priority": "diagnostic",
+        "reason": "Non-invasive imaging for organs, pregnancy, and soft tissue",
+        "turnaround": "Same day"
+    },
+    "ct_scan": {
+        "name": "CT Scan",
+        "cost": "high",
+        "priority": "specialized",
+        "reason": "Detailed cross-sectional imaging for internal organs and structures",
+        "turnaround": "Same day"
+    },
+    "mri_brain": {
+        "name": "Brain MRI",
+        "cost": "high",
+        "priority": "specialized",
+        "reason": "Detailed brain imaging for neurological conditions",
+        "turnaround": "1-2 days"
+    },
+    "mri_spine": {
+        "name": "Spine MRI",
+        "cost": "high",
+        "priority": "specialized",
+        "reason": "Detailed spinal imaging for disc and nerve issues",
+        "turnaround": "1-2 days"
+    },
+    "xray": {
+        "name": "X-Ray",
+        "cost": "low",
+        "priority": "screening",
+        "reason": "Basic imaging for bones and joints",
+        "turnaround": "Same day"
+    },
+    "sinus_xray": {
+        "name": "Sinus X-Ray",
+        "cost": "low",
+        "priority": "diagnostic",
+        "reason": "Visualizes sinus cavities to detect sinusitis",
+        "turnaround": "Same day"
+    },
+    "spirometry": {
+        "name": "Spirometry (Lung Function Test)",
+        "cost": "low",
+        "priority": "diagnostic",
+        "reason": "Measures lung capacity and airflow for respiratory conditions",
+        "turnaround": "Same day"
+    },
+    "peak_flow": {
+        "name": "Peak Flow Measurement",
+        "cost": "low",
+        "priority": "screening",
+        "reason": "Quick assessment of breathing capacity for asthma monitoring",
+        "turnaround": "Immediate"
+    },
+    "sputum_test": {
+        "name": "Sputum Culture",
+        "cost": "low",
+        "priority": "diagnostic",
+        "reason": "Identifies bacteria causing respiratory infections",
+        "turnaround": "2-3 days"
+    },
+    "allergy_test": {
+        "name": "Allergy Skin Test",
+        "cost": "medium",
+        "priority": "diagnostic",
+        "reason": "Identifies specific allergens causing reactions",
+        "turnaround": "Same day"
+    },
+    "ige_test": {
+        "name": "IgE Blood Test",
+        "cost": "medium",
+        "priority": "diagnostic",
+        "reason": "Measures allergy-related antibodies in blood",
+        "turnaround": "1-2 days"
+    },
+    "iron_studies": {
+        "name": "Iron Studies Panel",
+        "cost": "low",
+        "priority": "diagnostic",
+        "reason": "Evaluates iron levels and storage for anemia diagnosis",
+        "turnaround": "1-2 days"
+    },
+    "vitamin_b12": {
+        "name": "Vitamin B12 Test",
+        "cost": "low",
+        "priority": "screening",
+        "reason": "Checks B12 levels which affect nerve function and blood cells",
+        "turnaround": "1-2 days"
+    },
+    "vitamin_d_test": {
+        "name": "Vitamin D Test",
+        "cost": "low",
+        "priority": "screening",
+        "reason": "Checks vitamin D levels important for bone health",
+        "turnaround": "1-2 days"
+    },
+    "electrolytes": {
+        "name": "Electrolyte Panel",
+        "cost": "low",
+        "priority": "diagnostic",
+        "reason": "Measures sodium, potassium, and other essential minerals",
+        "turnaround": "Same day"
+    },
+    "kidney_function": {
+        "name": "Kidney Function Test (Creatinine, BUN)",
+        "cost": "low",
+        "priority": "screening",
+        "reason": "Evaluates kidney health and filtration ability",
+        "turnaround": "Same day"
+    },
+    "uric_acid": {
+        "name": "Uric Acid Test",
+        "cost": "low",
+        "priority": "diagnostic",
+        "reason": "Measures uric acid levels for gout diagnosis",
+        "turnaround": "Same day"
+    },
+    "rheumatoid_factor": {
+        "name": "Rheumatoid Factor Test",
+        "cost": "medium",
+        "priority": "diagnostic",
+        "reason": "Detects antibodies associated with rheumatoid arthritis",
+        "turnaround": "1-2 days"
+    },
+    "joint_fluid_analysis": {
+        "name": "Joint Fluid Analysis (Arthrocentesis)",
+        "cost": "medium",
+        "priority": "specialized",
+        "reason": "Examines joint fluid for infection, gout, or arthritis",
+        "turnaround": "1-2 days"
+    },
+    "throat_culture": {
+        "name": "Throat Culture",
+        "cost": "low",
+        "priority": "diagnostic",
+        "reason": "Identifies bacteria causing throat infections",
+        "turnaround": "1-2 days"
+    },
+    "rapid_strep_test": {
+        "name": "Rapid Strep Test",
+        "cost": "low",
+        "priority": "screening",
+        "reason": "Quick detection of streptococcal bacteria",
+        "turnaround": "10-15 minutes"
+    },
+    "lumbar_puncture": {
+        "name": "Lumbar Puncture (Spinal Tap)",
+        "cost": "high",
+        "priority": "specialized",
+        "reason": "Analyzes cerebrospinal fluid for meningitis or neurological diseases",
+        "turnaround": "1-2 days"
+    },
+    "neurological_exam": {
+        "name": "Neurological Examination",
+        "cost": "low",
+        "priority": "screening",
+        "reason": "Assesses nervous system function and reflexes",
+        "turnaround": "Immediate"
+    },
+    "vestibular_test": {
+        "name": "Vestibular Function Test",
+        "cost": "medium",
+        "priority": "diagnostic",
+        "reason": "Evaluates inner ear and balance function",
+        "turnaround": "Same day"
+    },
+    "nerve_conduction": {
+        "name": "Nerve Conduction Study",
+        "cost": "medium",
+        "priority": "specialized",
+        "reason": "Tests electrical conduction in nerves for neuropathy",
+        "turnaround": "Same day"
+    },
+    "sleep_study": {
+        "name": "Polysomnography (Sleep Study)",
+        "cost": "high",
+        "priority": "specialized",
+        "reason": "Monitors sleep patterns to diagnose sleep disorders",
+        "turnaround": "1-2 weeks"
+    },
+    "psychological_evaluation": {
+        "name": "Psychological Evaluation",
+        "cost": "medium",
+        "priority": "specialized",
+        "reason": "Comprehensive assessment for mental health conditions",
+        "turnaround": "1-2 sessions"
+    },
+    "hormone_panel": {
+        "name": "Hormone Panel",
+        "cost": "medium",
+        "priority": "diagnostic",
+        "reason": "Measures various hormones for endocrine disorders",
+        "turnaround": "2-3 days"
+    },
+    "ultrasound_pelvis": {
+        "name": "Pelvic Ultrasound",
+        "cost": "medium",
+        "priority": "diagnostic",
+        "reason": "Visualizes reproductive organs for PCOS and other conditions",
+        "turnaround": "Same day"
+    },
+    "ph_monitoring": {
+        "name": "Esophageal pH Monitoring",
+        "cost": "medium",
+        "priority": "specialized",
+        "reason": "Measures acid levels in esophagus for GERD diagnosis",
+        "turnaround": "24 hours monitoring"
+    },
+    "physical_exam": {
+        "name": "Physical Examination",
+        "cost": "low",
+        "priority": "screening",
+        "reason": "General assessment of body systems and vital signs",
+        "turnaround": "Immediate"
+    }
+}

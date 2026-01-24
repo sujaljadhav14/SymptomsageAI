@@ -1,0 +1,116 @@
+{
+    "symptoms": [
+        "chest_pain",
+        "difficulty_breathing",
+        "severe_bleeding",
+        "loss_of_consciousness",
+        "sudden_severe_headache",
+        "paralysis",
+        "seizure",
+        "severe_abdominal_pain",
+        "high_fever_over_104",
+        "coughing_blood",
+        "vomiting_blood",
+        "severe_allergic_reaction",
+        "suicidal_thoughts",
+        "confusion",
+        "slurred_speech"
+    ],
+    "emergencyMessage": "🚨 EMERGENCY: These symptoms require immediate medical attention. Please call emergency services (911) or go to the nearest emergency room immediately.",
+    "keywords": {
+        "chest_pain": [
+            "chest pain",
+            "chest hurts",
+            "pressure in chest",
+            "heart pain",
+            "tightness in chest"
+        ],
+        "difficulty_breathing": [
+            "can't breathe",
+            "hard to breathe",
+            "gasping",
+            "suffocating",
+            "shortness of breath severe"
+        ],
+        "severe_bleeding": [
+            "bleeding heavily",
+            "won't stop bleeding",
+            "blood loss",
+            "hemorrhage"
+        ],
+        "loss_of_consciousness": [
+            "passed out",
+            "fainted",
+            "unconscious",
+            "blacked out"
+        ],
+        "sudden_severe_headache": [
+            "worst headache",
+            "thunderclap headache",
+            "sudden intense headache"
+        ],
+        "paralysis": [
+            "can't move",
+            "paralyzed",
+            "numbness spreading",
+            "weakness one side"
+        ],
+        "seizure": [
+            "convulsion",
+            "seizure",
+            "fitting",
+            "jerking uncontrollably"
+        ],
+        "severe_abdominal_pain": [
+            "extreme stomach pain",
+            "worst abdominal pain",
+            "stabbing stomach pain"
+        ],
+        "high_fever_over_104": [
+            "very high fever",
+            "fever 104",
+            "fever 105",
+            "burning up"
+        ],
+        "coughing_blood": [
+            "coughing blood",
+            "blood in cough",
+            "hemoptysis"
+        ],
+        "vomiting_blood": [
+            "vomiting blood",
+            "blood in vomit",
+            "throwing up blood"
+        ],
+        "severe_allergic_reaction": [
+            "throat swelling",
+            "can't swallow",
+            "anaphylaxis",
+            "severe allergy"
+        ],
+        "suicidal_thoughts": [
+            "want to die",
+            "suicidal",
+            "end my life",
+            "hurt myself"
+        ],
+        "confusion": [
+            "sudden confusion",
+            "disoriented",
+            "not making sense",
+            "mental status change"
+        ],
+        "slurred_speech": [
+            "slurred speech",
+            "can't talk properly",
+            "speech difficulty"
+        ]
+    },
+    "instructions": [
+        "Stay calm and call for help immediately",
+        "Do not drive yourself - call an ambulance or have someone drive you",
+        "If with someone experiencing these symptoms, stay with them",
+        "Keep the person comfortable and still if possible",
+        "Be ready to provide information to emergency responders"
+    ]
+}
