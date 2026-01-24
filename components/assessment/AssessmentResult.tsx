@@ -13,6 +13,7 @@ import {
     Download
 } from 'lucide-react';
 import { AssessmentResult as AssessmentResultType, ConditionMatch, TestSuggestion } from '../../types';
+import NearbyFacilitiesCard from '../NearbyFacilitiesCard';
 
 interface AssessmentResultProps {
     result: AssessmentResultType;
@@ -281,6 +282,15 @@ ${result.disclaimer}
                         ))}
                     </ul>
                 </div>
+            )}
+
+            {/* Nearby Healthcare Facilities - Show for moderate/high risk */}
+            {(result.riskLevel === 'moderate' || result.riskLevel === 'high' || result.riskLevel === 'emergency') && (
+                <NearbyFacilitiesCard
+                    testSuggestions={result.testSuggestions}
+                    possibleConditions={result.possibleConditions}
+                    riskLevel={result.riskLevel}
+                />
             )}
 
             {/* Disclaimer */}

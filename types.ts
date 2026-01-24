@@ -114,3 +114,48 @@ export interface AssessmentResult {
   timestamp: Date;
 }
 
+// ============================================
+// LOCATION & HEALTHCARE FACILITY TYPES
+// ============================================
+
+export interface UserLocation {
+  latitude: number;
+  longitude: number;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  timestamp: Date;
+}
+
+export type FacilityType = 'hospital' | 'clinic' | 'doctor' | 'lab' | 'pharmacy';
+export type FacilityCategory = 'government' | 'private' | 'unknown';
+
+export interface HealthcareFacility {
+  id: string;
+  name: string;
+  type: FacilityType;
+  category: FacilityCategory;
+  address: string;
+  distance: string;
+  distanceMeters: number;
+  rating?: number;
+  totalRatings?: number;
+  isOpen?: boolean;
+  openingHours?: string[];
+  phone?: string;
+  priceLevel?: 1 | 2 | 3 | 4; // $ to $$$$
+  photoUrl?: string;
+  googleMapsUrl: string;
+  relevantTests?: string[];   // For labs
+  specialties?: string[];     // For doctors/clinics
+  placeId: string;
+}
+
+export interface FacilitySearchResult {
+  facilities: HealthcareFacility[];
+  searchType: FacilityType;
+  totalFound: number;
+  searchRadius: number;
+  userLocation: UserLocation;
+}

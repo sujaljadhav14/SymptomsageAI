@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI, Modality, LiveServerMessage } from '@google/genai';
 import { decode, decodeAudioData, createBlob } from '../utils/audioHelpers';
 import LiveVisualizer from './LiveVisualizer';
 import NotificationPanel from './NotificationPanel';
 import OfflineAssessmentView from '../views/OfflineAssessmentView';
+import NearbyFacilitiesCardSimple from './NearbyFacilitiesCardSimple';
 import { Message, ConnectionStatus, ClinicalReport, Notification, NotificationType } from '../types';
 import { saveChatHistory, savePatientSummary, getPatientContext, clearAllMemory, getLatestReport, getAllReports, ClinicalReportRecord } from '../utils/storage';
 import { useUser, UserButton } from '@clerk/clerk-react';
@@ -1292,6 +1292,12 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                                     DISCLAIMER: This report is AI-generated for informational purposes and does not constitute a medical diagnosis.
                                 </p>
                             </section>
+
+                            {/* Nearby Facilities */}
+                            <NearbyFacilitiesCardSimple
+                                recommendedTests={latestReport.recommendedTests}
+                                severity={latestReport.severity}
+                            />
                         </div>
 
                         <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
