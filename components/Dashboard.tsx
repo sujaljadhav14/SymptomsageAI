@@ -8,10 +8,10 @@ import NearbyFacilitiesCardSimple from './NearbyFacilitiesCardSimple';
 import { Message, ConnectionStatus, ClinicalReport, Notification, NotificationType } from '../types';
 import { saveChatHistory, savePatientSummary, getPatientContext, clearAllMemory, getLatestReport, getAllReports, ClinicalReportRecord } from '../utils/storage';
 import { useUser, UserButton } from '@clerk/clerk-react';
-import { 
-  BookOpen, Activity, History, MessageSquare, Download, 
-  ChevronRight, Search, Clock, Home, Bell, Sparkles, ArrowRight, 
-  Zap, Heart, Sun, Moon, CloudSun, MapPin, Camera, ClipboardList 
+import {
+    BookOpen, Activity, History, MessageSquare, Download,
+    ChevronRight, Search, Clock, Home, Bell, Sparkles, ArrowRight,
+    Zap, Heart, Sun, Moon, CloudSun, Camera, ClipboardList
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -248,11 +248,15 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
     }, [user?.firstName]);
 
     const generateHealthTips = useCallback(async () => {
-        if (isLoadingTips) return;
+        // Prevent multiple calls or calls if tips are already loaded
+        if (isLoadingTips || healthTips.length > 0) return;
+
         setIsLoadingTips(true);
 
         try {
             const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY || '';
+            console.log('Fetching health tips...');
+
             if (!apiKey || apiKey === 'PLACEHOLDER_API_KEY') {
                 setHealthTips([
                     "Stay hydrated by drinking at least 8 glasses of water daily",
@@ -278,6 +282,11 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                 })
             });
 
+            if (response.status === 429) {
+                console.warn('Rate limit exceeded for health tips, using fallbacks.');
+                throw new Error('Rate limit exceeded');
+            }
+
             const data = await response.json();
             const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
             const jsonMatch = text.match(/\[[\s\S]*\]/);
@@ -286,7 +295,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                 setHealthTips(tips.slice(0, 3));
             }
         } catch (e) {
-            console.warn('Failed to generate health tips:', e);
+            console.warn('Failed to generate health tips, using fallbacks.');
             setHealthTips([
                 "Stay hydrated throughout the day",
                 "Practice mindful breathing for stress relief",
@@ -295,7 +304,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
         } finally {
             setIsLoadingTips(false);
         }
-    }, [patientContext, isLoadingTips]);
+    }, [patientContext, isLoadingTips, healthTips.length]);
 
     const generateNotifications = useCallback(() => {
         const newNotifications: Notification[] = [];
@@ -607,13 +616,6 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                     <div className="pt-6 pb-2 px-4">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Resources</span>
                     </div>
-                    <button
-                        onClick={() => navigate('/app/hospital-locator')}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all duration-200 group"
-                    >
-                        <MapPin className="w-5 h-5 text-slate-400 group-hover:text-blue-500" />
-                        <span className="font-semibold">Hospital Locator</span>
-                    </button>
                     <button
                         onClick={() => navigate('/app/image-analysis')}
                         className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all duration-200 group"
