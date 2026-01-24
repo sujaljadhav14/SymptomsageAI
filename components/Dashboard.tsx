@@ -241,43 +241,49 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
         setAiGreeting(`${greeting.text}, ${firstName}! 👋`);
     }, [user?.firstName]);
 
-    const generateHealthTips = useCallback(async () => {
+    const generateHealthTips = useCallback(() => {
         if (isLoadingTips) return;
         setIsLoadingTips(true);
 
         try {
-            const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY || '';
-            if (!apiKey || apiKey === 'PLACEHOLDER_API_KEY') {
-                setHealthTips([
+            // Use latestReport state (already fetched) to personalize tips
+            if (latestReport) {
+                // Generate tips based on previous report conditions
+                const tips: string[] = [];
+                const severity = latestReport.severity;
+                const precautions = latestReport.precautions || [];
+
+                // Add tips based on severity
+                if (severity === 'high' || severity === 'emergency') {
+                    tips.push("Follow up with your healthcare provider as recommended");
+                } else if (severity === 'medium') {
+                    tips.push("Monitor your symptoms and rest when needed");
+                }
+
+                // Add tips based on precautions (simplified from report)
+                if (precautions.length > 0) {
+                    const shortPrecaution = precautions[0].slice(0, 60);
+                    tips.push(shortPrecaution.endsWith('.') ? shortPrecaution : shortPrecaution + '...');
+                }
+
+                // Add general wellness tip
+                tips.push("Stay hydrated and get adequate rest for recovery");
+
+                setHealthTips(tips.slice(0, 3));
+            } else {
+                // No previous reports - show static general health tips
+                const staticTips = [
                     "Stay hydrated by drinking at least 8 glasses of water daily",
                     "Take short breaks every hour if working at a desk",
-                    "Aim for 7-9 hours of quality sleep each night"
-                ]);
-                return;
-            }
+                    "Aim for 7-9 hours of quality sleep each night",
+                    "Practice mindful breathing for stress relief",
+                    "Regular movement helps boost energy levels",
+                    "Eat a balanced diet rich in fruits and vegetables"
+                ];
 
-            const contextPrompt = patientContext
-                ? `Based on this patient's history: ${patientContext.slice(0, 500)}, provide 3 personalized health tips.`
-                : 'Provide 3 general preventive health tips for an adult.';
-
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{
-                            text: `${contextPrompt} Return ONLY a JSON array of 3 strings, each being a short health tip (max 15 words each). Example: ["tip1", "tip2", "tip3"]`
-                        }]
-                    }]
-                })
-            });
-
-            const data = await response.json();
-            const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-            const jsonMatch = text.match(/\[[\s\S]*\]/);
-            if (jsonMatch) {
-                const tips = JSON.parse(jsonMatch[0]);
-                setHealthTips(tips.slice(0, 3));
+                // Randomly pick 3 tips for variety
+                const shuffled = staticTips.sort(() => 0.5 - Math.random());
+                setHealthTips(shuffled.slice(0, 3));
             }
         } catch (e) {
             console.warn('Failed to generate health tips:', e);
@@ -289,7 +295,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
         } finally {
             setIsLoadingTips(false);
         }
-    }, [patientContext, isLoadingTips]);
+    }, [isLoadingTips, latestReport]);
 
     const generateNotifications = useCallback(() => {
         const newNotifications: Notification[] = [];
