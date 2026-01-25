@@ -1,0 +1,33 @@
+steps:
+  # 1. Build Backend Image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/symptomsage-repo/backend:latest', '--target', 'backend', '.']
+
+  # 2. Build Frontend Image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/symptomsage-repo/frontend:latest'
+      - '--target'
+      - 'frontend'
+      - '--build-arg'
+      - 'VITE_GEMINI_API_KEY=$_VITE_GEMINI_API_KEY'
+      - '--build-arg'
+      - 'VITE_CLERK_PUBLISHABLE_KEY=$_VITE_CLERK_PUBLISHABLE_KEY'
+      - '--build-arg'
+      - 'VITE_SUPABASE_URL=$_VITE_SUPABASE_URL'
+      - '--build-arg'
+      - 'VITE_SUPABASE_ANON_KEY=$_VITE_SUPABASE_ANON_KEY'
+      - '--build-arg'
+      - 'VITE_GOOGLE_MAPS_API_KEY=$_VITE_GOOGLE_MAPS_API_KEY'
+      - '--build-arg'
+      - 'VITE_SIMLI_API_KEY=$_VITE_SIMLI_API_KEY'
+      - '.'
+
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/symptomsage-repo/backend:latest'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/symptomsage-repo/frontend:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

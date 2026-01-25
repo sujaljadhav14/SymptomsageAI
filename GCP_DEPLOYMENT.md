@@ -20,19 +20,25 @@ gcloud artifacts repositories create symptomsage-repo \
 
 ---
 
-## 2. Deploy Backend (Email Server)
-The backend needs access to SMTP secrets.
+## 2. Deploy using Cloud Build
+Since we have two services (Frontend & Backend), we use `cloudbuild.yaml` to build both in one go.
 
-### A. Build and Push
+### A. Run the Build
+Run this command from the root directory:
+```bash
+gcloud builds submit --config cloudbuild.yaml \
+    --substitutions=_VITE_GEMINI_API_KEY="your_key",_VITE_CLERK_PUBLISHABLE_KEY="your_key",_VITE_SUPABASE_URL="your_url",_VITE_SUPABASE_ANON_KEY="your_key",_VITE_GOOGLE_MAPS_API_KEY="your_key",_VITE_SIMLI_API_KEY="your_key"
+```
+
+---
+
+## 3. Deploy to Cloud Run
+After the build completes, deploy the images to Cloud Run.
+
+### A. Deploy Backend
 ```bash
 export PROJECT_ID=$(gcloud config get-value project)
 
-docker build -t us-central1-docker.pkg.dev/$PROJECT_ID/symptomsage-repo/backend:latest -f Dockerfile.backend .
-docker push us-central1-docker.pkg.dev/$PROJECT_ID/symptomsage-repo/backend:latest
-```
-
-### B. Deploy to Cloud Run
-```bash
 gcloud run deploy symptomsage-backend \
     --image us-central1-docker.pkg.dev/$PROJECT_ID/symptomsage-repo/backend:latest \
     --platform managed \
@@ -40,32 +46,8 @@ gcloud run deploy symptomsage-backend \
     --allow-unauthenticated \
     --set-env-vars="SMTP_HOST=smtp.gmail.com,SMTP_PORT=587,SMTP_USER=your-email@gmail.com,SMTP_PASS=your-app-password"
 ```
-*Note: Make sure to replace the SMTP variables or use Secret Manager.*
 
----
-
-## 3. Deploy Frontend
-The frontend requires the **Backend URL** and other VITE keys during build.
-
-### A. Build and Push
-```bash
-# Get the backend URL from the previous step
-export BACKEND_URL=$(gcloud run services describe symptomsage-backend --format='value(status.url)' --region us-central1)
-
-docker build -t us-central1-docker.pkg.dev/$PROJECT_ID/symptomsage-repo/frontend:latest \
-    -f Dockerfile.frontend \
-    --build-arg VITE_GEMINI_API_KEY=your_key \
-    --build-arg VITE_CLERK_PUBLISHABLE_KEY=your_key \
-    --build-arg VITE_SUPABASE_URL=your_url \
-    --build-arg VITE_SUPABASE_ANON_KEY=your_key \
-    --build-arg VITE_GOOGLE_MAPS_API_KEY=your_key \
-    --build-arg VITE_SIMLI_API_KEY=your_key \
-    .
-
-docker push us-central1-docker.pkg.dev/$PROJECT_ID/symptomsage-repo/frontend:latest
-```
-
-### B. Deploy to Cloud Run
+### B. Deploy Frontend
 ```bash
 gcloud run deploy symptomsage-frontend \
     --image us-central1-docker.pkg.dev/$PROJECT_ID/symptomsage-repo/frontend:latest \
