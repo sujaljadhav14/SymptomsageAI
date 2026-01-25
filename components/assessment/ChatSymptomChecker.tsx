@@ -39,7 +39,8 @@ const ChatSymptomChecker: React.FC<ChatSymptomCheckerProps> = ({ onViewFullResul
     const inputRef = useRef<HTMLInputElement>(null);
 
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (messages.length <= 1) return; // Don't scroll on initial render
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     };
 
     useEffect(() => {
@@ -131,7 +132,7 @@ const ChatSymptomChecker: React.FC<ChatSymptomCheckerProps> = ({ onViewFullResul
     return (
         <div className={`flex flex-col bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden ${compact ? 'h-[500px]' : 'h-[600px]'}`}>
             {/* Header */}
-            <div className="bg-gradient-to-r from-teal-600 to-emerald-600 p-4 text-white shrink-0">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 text-white shrink-0">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -159,7 +160,7 @@ const ChatSymptomChecker: React.FC<ChatSymptomCheckerProps> = ({ onViewFullResul
                         key={message.id}
                         className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
                     >
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${message.role === 'user' ? 'bg-blue-600' : 'bg-teal-600'
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${message.role === 'user' ? 'bg-blue-600' : 'bg-indigo-600'
                             }`}>
                             {message.role === 'user' ? (
                                 <User className="w-4 h-4 text-white" />
@@ -192,7 +193,7 @@ const ChatSymptomChecker: React.FC<ChatSymptomCheckerProps> = ({ onViewFullResul
                             {message.result && onViewFullResult && (
                                 <button
                                     onClick={() => onViewFullResult(message.result!)}
-                                    className="mt-2 text-xs text-teal-600 hover:text-teal-700 font-medium flex items-center gap-1"
+                                    className="mt-2 text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
                                 >
                                     <Zap className="w-3 h-3" />
                                     View detailed report
@@ -207,14 +208,14 @@ const ChatSymptomChecker: React.FC<ChatSymptomCheckerProps> = ({ onViewFullResul
 
                 {isAnalyzing && (
                     <div className="flex gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center shrink-0">
+                        <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shrink-0">
                             <Bot className="w-4 h-4 text-white" />
                         </div>
                         <div className="p-3 bg-white border border-slate-200 rounded-2xl rounded-bl-md shadow-sm">
                             <div className="flex items-center gap-2 text-sm text-slate-500">
-                                <div className="w-2 h-2 bg-teal-500 rounded-full animate-bounce" />
-                                <div className="w-2 h-2 bg-teal-500 rounded-full animate-bounce [animation-delay:0.1s]" />
-                                <div className="w-2 h-2 bg-teal-500 rounded-full animate-bounce [animation-delay:0.2s]" />
+                                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" />
+                                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:0.1s]" />
+                                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:0.2s]" />
                                 <span className="ml-2">Analyzing locally...</span>
                             </div>
                         </div>
@@ -233,7 +234,7 @@ const ChatSymptomChecker: React.FC<ChatSymptomCheckerProps> = ({ onViewFullResul
                             <button
                                 key={i}
                                 onClick={() => handleSuggestionClick(prompt)}
-                                className="px-3 py-1 bg-slate-100 hover:bg-teal-50 text-slate-600 hover:text-teal-700 rounded-full text-xs font-medium transition-colors"
+                                className="px-3 py-1 bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-700 rounded-full text-xs font-medium transition-colors"
                             >
                                 {prompt}
                             </button>
@@ -259,7 +260,7 @@ const ChatSymptomChecker: React.FC<ChatSymptomCheckerProps> = ({ onViewFullResul
                         onClick={handleSend}
                         disabled={!input.trim() || isAnalyzing}
                         className={`px-4 py-3 rounded-xl font-bold transition-all flex items-center gap-2 ${input.trim() && !isAnalyzing
-                            ? 'bg-teal-600 text-white hover:bg-teal-700 active:scale-95'
+                            ? 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'
                             : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                             }`}
                     >

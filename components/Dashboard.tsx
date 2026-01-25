@@ -5,13 +5,15 @@ import LiveVisualizer from './LiveVisualizer';
 import NotificationPanel from './NotificationPanel';
 import OfflineAssessmentView from '../views/OfflineAssessmentView';
 import NearbyFacilitiesCardSimple from './NearbyFacilitiesCardSimple';
+import HospitalLocator from './HospitalLocator';
+import ImageAnalysis from './ImageAnalysis';
 import { Message, ConnectionStatus, ClinicalReport, Notification, NotificationType } from '../types';
 import { saveChatHistory, savePatientSummary, getPatientContext, clearAllMemory, getLatestReport, getAllReports, ClinicalReportRecord } from '../utils/storage';
 import { useUser, UserButton } from '@clerk/clerk-react';
 import {
-    BookOpen, Activity, History, MessageSquare, Download,
+    BookOpen, Activity, History, MessageSquare, Download, Mail, Loader2, Bot,
     ChevronRight, Search, Clock, Home, Bell, Sparkles, ArrowRight,
-    Zap, Heart, Sun, Moon, CloudSun, Camera, ClipboardList
+    Zap, Heart, Sun, Moon, CloudSun, Camera, ClipboardList, MapPin, CheckCircle2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -40,11 +42,14 @@ const Dashboard: React.FC = () => {
     const [showDocs, setShowDocs] = useState(false);
     const [latestReport, setLatestReport] = useState<ClinicalReport | null>(null);
     const [showReport, setShowReport] = useState(false);
-    const [activeView, setActiveView] = useState<'home' | 'consultation' | 'reports' | 'assessment'>('home');
+    const [activeView, setActiveView] = useState<'home' | 'consultation' | 'reports' | 'assessment' | 'hospital-locator' | 'image-analysis'>('home');
     const [allReports, setAllReports] = useState<ClinicalReportRecord[]>([]);
     const [selectedReport, setSelectedReport] = useState<ClinicalReportRecord | null>(null);
     const [isLoadingReports, setIsLoadingReports] = useState(false);
     const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+    const [sendingEmail, setSendingEmail] = useState(false);
+    const [liveTranscription, setLiveTranscription] = useState('');
+    const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // AI-powered features state
     const [showNotifications, setShowNotifications] = useState(false);
@@ -52,6 +57,8 @@ const Dashboard: React.FC = () => {
     const [aiGreeting, setAiGreeting] = useState('');
     const [healthTips, setHealthTips] = useState<string[]>([]);
     const [isLoadingTips, setIsLoadingTips] = useState(false);
+    const [showImageAnalysisSuggestion, setShowImageAnalysisSuggestion] = useState(false);
+    const [showHospitalLocatorSuggestion, setShowHospitalLocatorSuggestion] = useState(false);
 
     // Audio Context Refs
     const inputAudioContextRef = useRef<AudioContext | null>(null);
@@ -127,6 +134,71 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
         URL.revokeObjectURL(url);
     };
 
+    const emailReport = async (reportToEmail?: ClinicalReport) => {
+        const report = reportToEmail || latestReport;
+        if (!report || !user) return;
+
+        setSendingEmail(true);
+        try {
+            const reportText = `
+SYMPTOMSAGE AI - CLINICAL TRIAGE REPORT
+Generated on: ${new Date().toLocaleString()}
+
+SEVERITY: ${report.severity?.toUpperCase() || 'UNKNOWN'}
+
+PATIENT SUMMARY:
+${report.summary || 'No summary available.'}
+
+PRECAUTIONS:
+${(report.precautions || []).map(p => `- ${p}`).join('\n') || 'No specific precautions provided.'}
+
+RECOMMENDED TESTS:
+${(report.recommendedTests || []).map(t => `- ${t}`).join('\n') || 'No specific tests recommended.'}
+
+CLINICAL DIFFERENTIATOR:
+${report.differentiation || 'None provided.'}
+
+DISCLAIMER: This report is AI-generated for informational purposes and does not constitute a medical diagnosis. Always seek professional medical advice.
+`;
+
+            const response = await fetch('http://localhost:3001/api/send-report', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: user.primaryEmailAddress?.emailAddress,
+                    userName: user.fullName || user.firstName,
+                    reportText
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => null);
+                throw new Error(errorData?.error || 'Failed to send email');
+            }
+
+            // Success feedback
+            setNotifications(prev => [{
+                id: Math.random().toString(36).substring(7),
+                type: 'info' as NotificationType,
+                title: 'Email Sent',
+                message: `The report has been sent to ${user.primaryEmailAddress?.emailAddress}`,
+                timestamp: new Date(),
+                read: false
+            }, ...prev]);
+            setShowNotifications(true);
+
+        } catch (error: any) {
+            console.error('Email error:', error);
+            if (error.message === 'Failed to fetch') {
+                setError('Email server not found. Please run "npm run server" in a new terminal.');
+            } else {
+                setError(`Email failed: ${error.message}`);
+            }
+        } finally {
+            setSendingEmail(false);
+        }
+    };
+
     const fetchReports = useCallback(async () => {
         if (!user?.id) return;
         setIsLoadingReports(true);
@@ -181,9 +253,10 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
             });
 
             const data = await response.json();
+            console.log('📄 Gemini Summarization Response:', data);
 
             if (!response.ok) {
-                console.error('Gemini API Error Response:', data);
+                console.error('❌ Gemini API Error Response:', data);
                 setError(`API Error: ${data.error?.message || 'Failed to connect to Gemini 2.0'}`);
                 return;
             }
@@ -247,42 +320,31 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
         setAiGreeting(`${greeting.text}, ${firstName}! 👋`);
     }, [user?.firstName]);
 
-    const generateHealthTips = useCallback(async () => {
+    const generateHealthTips = useCallback(() => {
         if (isLoadingTips) return;
         setIsLoadingTips(true);
 
         try {
-            const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY || '';
-            if (!apiKey || apiKey === 'PLACEHOLDER_API_KEY') {
-                setHealthTips([
-                    "Stay hydrated by drinking at least 8 glasses of water daily",
-                    "Take short breaks every hour if working at a desk",
-                    "Aim for 7-9 hours of quality sleep each night"
-                ]);
-                return;
-            }
+            // Use latestReport state to personalize tips (no API call!)
+            if (latestReport) {
+                const tips: string[] = [];
+                const severity = latestReport.severity;
+                const precautions = latestReport.precautions || [];
 
-            const contextPrompt = patientContext
-                ? `Based on this patient's history: ${patientContext.slice(0, 500)}, provide 3 personalized health tips.`
-                : 'Provide 3 general preventive health tips for an adult.';
+                // Add tips based on severity
+                if (severity === 'high' || severity === 'emergency') {
+                    tips.push("Follow up with your healthcare provider as recommended");
+                } else if (severity === 'medium') {
+                    tips.push("Monitor your symptoms and rest when needed");
+                }
 
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{
-                            text: `${contextPrompt} Return ONLY a JSON array of 3 strings, each being a short health tip (max 15 words each). Example: ["tip1", "tip2", "tip3"]`
-                        }]
-                    }]
-                })
-            });
+                // Add tips based on precautions
+                if (precautions.length > 0) {
+                    const shortPrecaution = precautions[0].slice(0, 60);
+                    tips.push(shortPrecaution.endsWith('.') ? shortPrecaution : shortPrecaution + '...');
+                }
 
-            const data = await response.json();
-            const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-            const jsonMatch = text.match(/\[[\s\S]*\]/);
-            if (jsonMatch) {
-                const tips = JSON.parse(jsonMatch[0]);
+                tips.push("Stay hydrated and get adequate rest for recovery");
                 setHealthTips(tips.slice(0, 3));
             } else {
                 // No previous reports - show static general health tips
@@ -309,7 +371,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
         } finally {
             setIsLoadingTips(false);
         }
-    }, [patientContext, isLoadingTips]);
+    }, [isLoadingTips, latestReport]);
 
     const generateNotifications = useCallback(() => {
         const newNotifications: Notification[] = [];
@@ -405,8 +467,8 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                 },
                 callbacks: {
                     onopen: () => {
+                        console.log('✅ Gemini Live Session Opened');
                         setStatus(ConnectionStatus.CONNECTED);
-                        console.log('Live Session Opened');
 
                         // Stream microphone to model
                         const source = inputAudioContextRef.current!.createMediaStreamSource(stream);
@@ -429,6 +491,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                         scriptProcessor.connect(inputAudioContextRef.current!.destination);
                     },
                     onmessage: async (message: LiveServerMessage) => {
+                        console.log('📬 Received Gemini Message:', message);
                         if (message.serverContent?.inputTranscription) {
                             currentInputText.current += message.serverContent.inputTranscription.text;
                         }
@@ -436,11 +499,29 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                             currentOutputText.current += message.serverContent.outputTranscription.text;
                         }
 
+                        // Update live transcription for UI feedback
+                        setLiveTranscription(currentInputText.current || currentOutputText.current);
+
                         if (message.serverContent?.turnComplete) {
-                            if (currentInputText.current) addMessage('user', currentInputText.current);
+                            if (currentInputText.current) {
+                                const text = currentInputText.current.toLowerCase();
+                                addMessage('user', currentInputText.current);
+
+                                // Keyword detection for Image Analysis
+                                if (text.match(/rash|skin|wound|bruise|cut|swelling|redness|spot|mark|bump/)) {
+                                    setShowImageAnalysisSuggestion(true);
+                                }
+
+                                // Keyword detection for Hospital Locator (if severity high or emergency mentioned)
+                                if (text.match(/severe|emergency|intense|hospital|doctor|clinic|nearby|find/)) {
+                                    setShowHospitalLocatorSuggestion(true);
+                                }
+                            }
                             if (currentOutputText.current) addMessage('assistant', currentOutputText.current);
+                            console.log('🔄 Turn Complete. Transcript Syncing...');
                             currentInputText.current = '';
                             currentOutputText.current = '';
+                            setLiveTranscription('');
                         }
 
                         const audioData = message.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
@@ -561,6 +642,10 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
         }
     }, [activeView, generateAIGreeting, generateHealthTips, generateNotifications]);
 
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages, liveTranscription]);
+
     return (
         <div className="flex h-screen bg-slate-50 text-slate-900 overflow-hidden font-sans">
             {/* Sidebar Navigation */}
@@ -597,6 +682,26 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                         <span className="font-semibold">Consultation</span>
                     </button>
                     <button
+                        onClick={() => setActiveView('image-analysis')}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeView === 'image-analysis'
+                            ? 'bg-blue-600 text-white shadow-md shadow-blue-100'
+                            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                            }`}
+                    >
+                        <Camera className={`w-5 h-5 ${activeView === 'image-analysis' ? 'text-white' : 'text-slate-400 group-hover:text-blue-500'}`} />
+                        <span className="font-semibold">Image Analysis</span>
+                    </button>
+                    <button
+                        onClick={() => setActiveView('hospital-locator')}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeView === 'hospital-locator'
+                            ? 'bg-blue-600 text-white shadow-md shadow-blue-100'
+                            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                            }`}
+                    >
+                        <MapPin className={`w-5 h-5 ${activeView === 'hospital-locator' ? 'text-white' : 'text-slate-400 group-hover:text-blue-500'}`} />
+                        <span className="font-semibold">Hospital Locator</span>
+                    </button>
+                    <button
                         onClick={() => setActiveView('reports')}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeView === 'reports'
                             ? 'bg-blue-600 text-white shadow-md shadow-blue-100'
@@ -609,25 +714,19 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                     <button
                         onClick={() => setActiveView('assessment')}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeView === 'assessment'
-                            ? 'bg-emerald-600 text-white shadow-md shadow-emerald-100'
+                            ? 'bg-blue-600 text-white shadow-md shadow-blue-100'
                             : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
                             }`}
                     >
-                        <ClipboardList className={`w-5 h-5 ${activeView === 'assessment' ? 'text-white' : 'text-slate-400 group-hover:text-emerald-500'}`} />
+                        <ClipboardList className={`w-5 h-5 ${activeView === 'assessment' ? 'text-white' : 'text-slate-400 group-hover:text-blue-500'}`} />
                         <span className="font-semibold">Low Network</span>
-                        <span className="ml-auto px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[9px] font-bold rounded uppercase">Offline</span>
+                        <span className="ml-auto px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[9px] font-bold rounded uppercase">Offline</span>
                     </button>
 
                     <div className="pt-6 pb-2 px-4">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Resources</span>
                     </div>
-                    <button
-                        onClick={() => navigate('/app/image-analysis')}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all duration-200 group"
-                    >
-                        <Camera className="w-5 h-5 text-slate-400 group-hover:text-blue-500" />
-                        <span className="font-semibold">Image Analysis</span>
-                    </button>
+
                     <button
                         onClick={() => setShowDocs(true)}
                         className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all duration-200 group"
@@ -876,38 +975,71 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                                 <div className="flex-1 overflow-y-auto p-6 space-y-4">
                                     {messages.length === 0 ? (
                                         <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-6">
-                                            <div className="relative">
-                                                <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center text-blue-500 animate-pulse">
-                                                    <MessageSquare className="w-10 h-10" />
-                                                </div>
-                                                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-white rounded-lg shadow-md flex items-center justify-center border border-slate-100">
-                                                    <Activity className="w-4 h-4 text-green-500" />
-                                                </div>
+                                            <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center animate-pulse">
+                                                <Bot className="w-10 h-10 text-blue-500" />
                                             </div>
                                             <div>
-                                                <h3 className="text-xl font-bold text-slate-800 mb-2">Ready to Assist</h3>
-                                                <p className="text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
-                                                    Press the button below to start your voice-guided medical triage. SymptomSage will listen and assess your symptoms.
+                                                <h4 className="text-xl font-bold text-slate-800 mb-2">Ready to Assist</h4>
+                                                <p className="text-slate-500 max-w-sm mx-auto text-sm">
+                                                    Start the session and describe your symptoms. SymptomSage will listen and provide a clinical analysis.
                                                 </p>
                                             </div>
                                         </div>
                                     ) : (
-                                        messages.map((msg) => (
-                                            <div
-                                                key={msg.id}
-                                                className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
-                                            >
-                                                <div className={`max-w-[85%] rounded-2xl px-5 py-3 shadow-sm text-sm ${msg.role === 'user'
-                                                    ? 'bg-blue-600 text-white rounded-tr-none'
-                                                    : 'bg-slate-100 text-slate-800 rounded-tl-none border border-slate-200'
-                                                    }`}>
-                                                    {msg.text}
+                                        <>
+                                            {messages.map((msg) => (
+                                                <div
+                                                    key={msg.id}
+                                                    className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+                                                >
+                                                    <div className={`max-w-[85%] rounded-2xl px-5 py-3 shadow-sm text-sm ${msg.role === 'user'
+                                                        ? 'bg-blue-600 text-white rounded-tr-none'
+                                                        : 'bg-slate-100 text-slate-800 rounded-tl-none border border-slate-200'
+                                                        }`}>
+                                                        {msg.text}
+                                                    </div>
+                                                    <span className="text-[10px] text-slate-400 mt-1.5 px-2 font-medium">
+                                                        {msg.role === 'user' ? 'Patient' : 'SymptomSage AI'} • {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </span>
                                                 </div>
-                                                <span className="text-[10px] text-slate-400 mt-1.5 px-2 font-medium">
-                                                    {msg.role === 'user' ? 'Patient' : 'SymptomSage AI'} • {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                </span>
-                                            </div>
-                                        ))
+                                            ))}
+
+                                            {liveTranscription && (
+                                                <div className="flex flex-col items-end opacity-60">
+                                                    <div className="max-w-[85%] bg-slate-200 text-slate-600 rounded-2xl px-5 py-3 text-sm rounded-tr-none">
+                                                        {liveTranscription}...
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div ref={messagesEndRef} />
+
+                                            {/* AI Feature Suggestions */}
+                                            {(showImageAnalysisSuggestion || showHospitalLocatorSuggestion) && (
+                                                <div className="flex flex-wrap gap-2 mt-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                                    {showImageAnalysisSuggestion && (
+                                                        <button
+                                                            onClick={() => setActiveView('image-analysis')}
+                                                            className="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-xl text-blue-700 text-xs font-bold hover:bg-blue-100 transition-all active:scale-95 shadow-sm"
+                                                        >
+                                                            <Camera className="w-3.5 h-3.5" />
+                                                            Try Image Analysis for this symptom
+                                                            <ArrowRight className="w-3 h-3" />
+                                                        </button>
+                                                    )}
+                                                    {showHospitalLocatorSuggestion && (
+                                                        <button
+                                                            onClick={() => setActiveView('hospital-locator')}
+                                                            className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-xs font-bold hover:bg-emerald-100 transition-all active:scale-95 shadow-sm"
+                                                        >
+                                                            <MapPin className="w-3.5 h-3.5" />
+                                                            Find nearby medical facilities
+                                                            <ArrowRight className="w-3 h-3" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </>
                                     )}
                                     {(currentInputText.current || currentOutputText.current) && (
                                         <div className="flex gap-2 items-center text-blue-500 px-4 py-2 bg-blue-50 rounded-full w-fit animate-pulse border border-blue-100">
@@ -1125,9 +1257,17 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                                                 <button
                                                     onClick={() => downloadReport(record.report)}
                                                     className="p-2.5 bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-800 rounded-xl transition-all border border-slate-200 active:scale-95"
-                                                    title="Download Report"
+                                                    title="Download Report (TXT)"
                                                 >
                                                     <Download className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => emailReport(record.report)}
+                                                    disabled={sendingEmail}
+                                                    className="p-2.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all border border-blue-100 active:scale-95 disabled:opacity-50"
+                                                    title="Email Report to Me"
+                                                >
+                                                    {sendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
                                                 </button>
                                             </div>
                                         </div>
@@ -1138,6 +1278,10 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                     </>
                 ) : activeView === 'assessment' ? (
                     <OfflineAssessmentView />
+                ) : activeView === 'hospital-locator' ? (
+                    <HospitalLocator onBack={() => setActiveView('home')} />
+                ) : activeView === 'image-analysis' ? (
+                    <ImageAnalysis onBack={() => setActiveView('home')} />
                 ) : null}
             </div>
 
@@ -1307,15 +1451,21 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                             />
                         </div>
 
-                        <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                        <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3 flex-wrap">
                             <button
-                                onClick={downloadReport}
-                                className="px-6 py-2.5 bg-white text-slate-700 border border-slate-200 rounded-xl font-bold hover:bg-slate-50 transition-all active:scale-95 flex items-center gap-2"
+                                onClick={() => downloadReport()}
+                                className="px-6 py-2.5 bg-white text-slate-700 border border-slate-200 rounded-xl font-bold hover:bg-slate-50 transition-all active:scale-95 flex items-center gap-2 shadow-sm"
                             >
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
+                                <Download className="w-4 h-4" />
                                 Download (TXT)
+                            </button>
+                            <button
+                                onClick={() => emailReport()}
+                                disabled={sendingEmail}
+                                className="px-6 py-2.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-xl font-bold hover:bg-blue-100 transition-all active:scale-95 flex items-center gap-2 shadow-sm disabled:opacity-50"
+                            >
+                                {sendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                                Email Report
                             </button>
                             <button
                                 onClick={() => setShowReport(false)}

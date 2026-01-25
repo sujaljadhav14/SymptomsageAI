@@ -24,32 +24,6 @@ const App: React.FC = () => {
           </>
         }
       />
-      <Route
-        path="/app/hospital-locator"
-        element={
-          <>
-            <SignedIn>
-              <HospitalLocator />
-            </SignedIn>
-            <SignedOut>
-              <Navigate to="/" replace />
-            </SignedOut>
-          </>
-        }
-      />
-      <Route
-        path="/app/image-analysis"
-        element={
-          <>
-            <SignedIn>
-              <ImageAnalysis />
-            </SignedIn>
-            <SignedOut>
-              <Navigate to="/" replace />
-            </SignedOut>
-          </>
-        }
-      />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

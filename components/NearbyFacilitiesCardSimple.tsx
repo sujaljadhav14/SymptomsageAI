@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
     MapPin, Building2, Stethoscope, FlaskConical,
-    Star, Clock, Phone, Navigation, RefreshCw, Building, AlertCircle
+    Star, Clock, Phone, Navigation, RefreshCw, Building, AlertCircle, Maximize2
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { HealthcareFacility, UserLocation, FacilityType, FacilityCategory } from '../types';
 import { requestUserLocation, getSavedLocation } from '../utils/locationService';
 import { searchLabs, searchNearbyFacilities, getPriceLevelDisplay } from '../utils/placesService';
@@ -18,6 +19,7 @@ const NearbyFacilitiesCardSimple: React.FC<NearbyFacilitiesCardSimpleProps> = ({
     recommendedTests,
     severity,
 }) => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<TabType>('labs');
     const [categoryFilter, setCategoryFilter] = useState<'all' | FacilityCategory>('all');
     const [facilities, setFacilities] = useState<HealthcareFacility[]>([]);
@@ -117,7 +119,7 @@ const NearbyFacilitiesCardSimple: React.FC<NearbyFacilitiesCardSimpleProps> = ({
     return (
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mt-4">
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-3 text-white">
+            <div className="bg-gradient-to-r from-blue-700 to-indigo-700 p-3 text-white">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4" />
@@ -126,13 +128,23 @@ const NearbyFacilitiesCardSimple: React.FC<NearbyFacilitiesCardSimpleProps> = ({
                             <span className="text-xs text-white/70">• {userLocation.city}</span>
                         )}
                     </div>
-                    <button
-                        onClick={fetchFacilities}
-                        disabled={isLoading}
-                        className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
-                    >
-                        <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-                    </button>
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={() => navigate('/app/hospital-locator')}
+                            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors flex items-center gap-1 text-[10px] font-bold"
+                            title="View on full map"
+                        >
+                            <Maximize2 className="w-3.5 h-3.5" />
+                            <span>Map</span>
+                        </button>
+                        <button
+                            onClick={fetchFacilities}
+                            disabled={isLoading}
+                            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+                        >
+                            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -174,7 +186,7 @@ const NearbyFacilitiesCardSimple: React.FC<NearbyFacilitiesCardSimpleProps> = ({
                 <button
                     onClick={() => setCategoryFilter('government')}
                     className={`px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 transition-all ${categoryFilter === 'government'
-                        ? 'bg-emerald-600 text-white'
+                        ? 'bg-blue-600 text-white'
                         : 'bg-white border border-slate-200 text-slate-600'
                         }`}
                 >
@@ -221,8 +233,8 @@ const NearbyFacilitiesCardSimple: React.FC<NearbyFacilitiesCardSimpleProps> = ({
                                 <div className="flex justify-between items-start mb-1">
                                     <h4 className="font-semibold text-slate-800 text-xs line-clamp-1 flex-1">{facility.name}</h4>
                                     <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ml-2 ${facility.category === 'government'
-                                        ? 'bg-emerald-100 text-emerald-700'
-                                        : 'bg-purple-100 text-purple-700'
+                                        ? 'bg-blue-100 text-blue-700'
+                                        : 'bg-indigo-100 text-indigo-700'
                                         }`}>
                                         {facility.category === 'government' ? 'Govt' : 'Private'}
                                     </span>
@@ -237,7 +249,7 @@ const NearbyFacilitiesCardSimple: React.FC<NearbyFacilitiesCardSimpleProps> = ({
                                         </span>
                                     )}
                                     {facility.isOpen !== undefined && (
-                                        <span className={facility.isOpen ? 'text-emerald-600' : 'text-red-500'}>
+                                        <span className={facility.isOpen ? 'text-blue-600' : 'text-red-500'}>
                                             {facility.isOpen ? 'Open' : 'Closed'}
                                         </span>
                                     )}
@@ -247,7 +259,7 @@ const NearbyFacilitiesCardSimple: React.FC<NearbyFacilitiesCardSimpleProps> = ({
                                         href={facility.googleMapsUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="px-2 py-1 bg-blue-600 text-white text-[10px] font-bold rounded flex items-center gap-1"
+                                        className="px-2 py-1 bg-blue-600 text-white text-[10px] font-bold rounded flex items-center gap-1 hover:bg-blue-700 transition-colors"
                                     >
                                         <Navigation className="w-2.5 h-2.5" />
                                         Directions

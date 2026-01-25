@@ -45,7 +45,7 @@ const getRiskBadge = (riskLevel: string) => {
             };
         default:
             return {
-                bg: 'bg-emerald-500',
+                bg: 'bg-blue-600',
                 text: 'text-white',
                 icon: CheckCircle,
                 label: 'LOW RISK'
@@ -56,7 +56,7 @@ const getRiskBadge = (riskLevel: string) => {
 const getConfidenceBadge = (confidence: string) => {
     switch (confidence) {
         case 'very_likely':
-            return 'bg-emerald-100 text-emerald-700';
+            return 'bg-blue-100 text-blue-700';
         case 'likely':
             return 'bg-blue-100 text-blue-700';
         default:
@@ -71,7 +71,7 @@ const getCostBadge = (cost: string) => {
         case 'medium':
             return 'bg-amber-50 text-amber-600';
         default:
-            return 'bg-emerald-50 text-emerald-600';
+            return 'bg-blue-50 text-blue-600';
     }
 };
 
@@ -79,7 +79,7 @@ const ConditionCard: React.FC<{ condition: ConditionMatch; rank: number }> = ({ 
     const riskColors = {
         'high': 'border-l-orange-500 bg-orange-50/50',
         'moderate': 'border-l-amber-500 bg-amber-50/50',
-        'low': 'border-l-emerald-500 bg-emerald-50/50'
+        'low': 'border-l-blue-500 bg-blue-50/50'
     };
 
     return (
@@ -266,15 +266,15 @@ ${result.disclaimer}
 
             {/* Next Steps */}
             {!result.isEmergency && (
-                <div className="bg-emerald-50 rounded-2xl border border-emerald-100 p-6">
+                <div className="bg-blue-50 rounded-2xl border border-blue-100 p-6">
                     <div className="flex items-center gap-2 mb-4">
-                        <Shield className="w-5 h-5 text-emerald-600" />
-                        <h3 className="font-bold text-emerald-800">Recommended Next Steps</h3>
+                        <Shield className="w-5 h-5 text-blue-600" />
+                        <h3 className="font-bold text-blue-800">Recommended Next Steps</h3>
                     </div>
                     <ul className="space-y-2">
                         {result.nextSteps.map((step, i) => (
-                            <li key={i} className="flex items-start gap-3 text-sm text-emerald-700">
-                                <span className="w-5 h-5 rounded-full bg-emerald-200 flex items-center justify-center text-xs font-bold shrink-0">
+                            <li key={i} className="flex items-start gap-3 text-sm text-blue-700">
+                                <span className="w-5 h-5 rounded-full bg-blue-200 flex items-center justify-center text-xs font-bold shrink-0">
                                     {i + 1}
                                 </span>
                                 {step}

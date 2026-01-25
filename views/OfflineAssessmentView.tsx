@@ -52,7 +52,7 @@ const OfflineAssessmentView: React.FC = () => {
                         <button
                             onClick={() => { setMode('chat'); setResult(null); }}
                             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${mode === 'chat'
-                                ? 'bg-teal-600 text-white shadow-sm'
+                                ? 'bg-blue-600 text-white shadow-sm'
                                 : 'text-slate-600 hover:text-slate-800'
                                 }`}
                         >
@@ -62,7 +62,7 @@ const OfflineAssessmentView: React.FC = () => {
                         <button
                             onClick={() => { setMode('form'); setResult(null); }}
                             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${mode === 'form'
-                                ? 'bg-emerald-600 text-white shadow-sm'
+                                ? 'bg-indigo-600 text-white shadow-sm'
                                 : 'text-slate-600 hover:text-slate-800'
                                 }`}
                         >
@@ -70,7 +70,7 @@ const OfflineAssessmentView: React.FC = () => {
                             Form
                         </button>
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold ring-1 ring-emerald-200">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-bold ring-1 ring-blue-200">
                         <WifiOff className="w-3.5 h-3.5" />
                         <span>Offline</span>
                     </div>
@@ -89,21 +89,21 @@ const OfflineAssessmentView: React.FC = () => {
             <div className="p-8">
                 <div className="max-w-4xl mx-auto">
                     {/* Offline Info Banner */}
-                    <div className="mb-6 flex items-center gap-4 p-4 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-2xl border border-teal-100">
-                        <div className="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center">
-                            <WifiOff className="w-6 h-6 text-teal-600" />
+                    <div className="mb-6 flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100">
+                        <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                            <WifiOff className="w-6 h-6 text-blue-600" />
                         </div>
                         <div className="flex-1">
-                            <h3 className="font-bold text-teal-800">Works Without Internet</h3>
-                            <p className="text-sm text-teal-600">
+                            <h3 className="font-bold text-blue-800">Works Without Internet</h3>
+                            <p className="text-sm text-blue-600">
                                 {mode === 'chat'
                                     ? 'Type your symptoms naturally - analysis happens on your device'
                                     : 'Select symptoms from our database - fully offline analysis'}
                             </p>
                         </div>
                         <div className="hidden md:flex flex-col items-end text-right">
-                            <span className="text-xs text-teal-600 font-medium">No API calls</span>
-                            <span className="text-xs text-teal-600 font-medium">100% private</span>
+                            <span className="text-xs text-blue-600 font-medium">No API calls</span>
+                            <span className="text-xs text-blue-600 font-medium">100% private</span>
                         </div>
                     </div>
 
@@ -135,7 +135,7 @@ const OfflineAssessmentView: React.FC = () => {
                                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${history.riskLevel === 'emergency' ? 'bg-red-100 text-red-700' :
                                                     history.riskLevel === 'high' ? 'bg-orange-100 text-orange-700' :
                                                         history.riskLevel === 'moderate' ? 'bg-amber-100 text-amber-700' :
-                                                            'bg-emerald-100 text-emerald-700'
+                                                            'bg-blue-100 text-blue-700'
                                                     }`}>
                                                     {history.riskLevel}
                                                 </span>

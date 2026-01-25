@@ -8,7 +8,11 @@ interface AnalysisResult {
     timestamp: Date;
 }
 
-const ImageAnalysis: React.FC = () => {
+interface ImageAnalysisProps {
+    onBack?: () => void;
+}
+
+const ImageAnalysis: React.FC<ImageAnalysisProps> = ({ onBack }) => {
     const navigate = useNavigate();
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
     const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
@@ -188,7 +192,7 @@ Be professional, empathetic, and clear in your response.`
             <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-40">
                 <div className="flex items-center gap-4">
                     <button
-                        onClick={() => navigate('/app')}
+                        onClick={() => onBack ? onBack() : navigate('/app')}
                         className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                     >
                         <ArrowLeft className="w-5 h-5 text-slate-600" />
