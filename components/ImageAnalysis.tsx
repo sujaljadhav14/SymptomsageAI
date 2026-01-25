@@ -2,6 +2,10 @@ import React, { useState, useRef } from 'react';
 import { Camera, Upload, X, ArrowLeft, Loader2, AlertCircle, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import {
+    Activity, ClipboardList, Clock,
+    ArrowRight, MapPin
+} from 'lucide-react';
 
 interface AnalysisResult {
     text: string;
@@ -23,6 +27,7 @@ const ImageAnalysis: React.FC<ImageAnalysisProps> = ({ onBack }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const streamRef = useRef<MediaStream | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const resultRef = useRef<HTMLDivElement>(null);
 
     // Start camera
     const startCamera = async () => {
@@ -167,6 +172,10 @@ Be professional, empathetic, and clear in your response.`
                     text: resultText,
                     timestamp: new Date()
                 });
+                // Auto-scroll to results after a short delay to allow mounting
+                setTimeout(() => {
+                    resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
             } else {
                 throw new Error('No analysis result received from AI');
             }
@@ -354,61 +363,81 @@ Be professional, empathetic, and clear in your response.`
                     </div>
 
                     {/* Right Panel - Analysis Results */}
-                    <div className="flex-1">
-                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 min-h-[500px]">
+                    <div className="flex-1" ref={resultRef}>
+                        <div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] border border-white shadow-xl shadow-slate-200/50 p-8 min-h-[500px] transition-all duration-500 hover:shadow-2xl hover:shadow-blue-100/30">
                             {!analysisResult && !loading && (
-                                <div className="h-full flex flex-col items-center justify-center text-center space-y-4 p-8">
-                                    <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center">
-                                        <Sparkles className="w-10 h-10 text-slate-300" />
+                                <div className="h-full flex flex-col items-center justify-center text-center space-y-6 p-8">
+                                    <div className="w-24 h-24 bg-gradient-to-br from-slate-50 to-slate-100 rounded-[2rem] flex items-center justify-center border border-slate-200 shadow-inner">
+                                        <Sparkles className="w-12 h-12 text-slate-300 animate-pulse" />
                                     </div>
-                                    <div>
-                                        <h3 className="text-lg font-bold text-slate-800 mb-2">No Analysis Yet</h3>
-                                        <p className="text-slate-500 text-sm max-w-xs mx-auto">
-                                            Upload an image and click analyze to see AI-powered medical insights
+                                    <div className="space-y-2">
+                                        <h3 className="text-xl font-bold text-slate-800">Ready for Analysis</h3>
+                                        <p className="text-slate-500 text-sm max-w-[280px] mx-auto leading-relaxed">
+                                            Upload or capture an image to see immediate AI-generated medical insights.
                                         </p>
                                     </div>
                                 </div>
                             )}
 
                             {loading && (
-                                <div className="h-full flex flex-col items-center justify-center space-y-4">
-                                    <Loader2 className="w-16 h-16 text-blue-600 animate-spin" />
-                                    <p className="text-slate-600 font-medium">Analyzing image...</p>
-                                    <p className="text-slate-400 text-sm">This may take a few seconds</p>
+                                <div className="h-full flex flex-col items-center justify-center space-y-8 p-8">
+                                    <div className="relative">
+                                        <div className="w-24 h-24 border-4 border-blue-50 border-t-blue-600 rounded-full animate-spin" />
+                                        <Activity className="absolute inset-0 m-auto w-10 h-10 text-blue-600 animate-pulse" />
+                                    </div>
+                                    <div className="text-center space-y-2">
+                                        <p className="text-lg font-bold text-slate-800">Processing Medical Image</p>
+                                        <p className="text-slate-400 text-sm animate-pulse font-medium">Gemini is analyzing visual patterns...</p>
+                                    </div>
                                 </div>
                             )}
 
-                            {analysisResult && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="space-y-6"
-                                >
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="text-lg font-bold text-slate-800">Analysis Results</h3>
-                                        <button
-                                            onClick={reset}
-                                            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-all active:scale-95"
-                                        >
-                                            New Analysis
-                                        </button>
-                                    </div>
-
-                                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <Sparkles className="w-5 h-5 text-blue-600" />
-                                            <span className="text-blue-900 font-bold text-sm">AI Medical Insights</span>
+                            <AnimatePresence>
+                                {analysisResult && (
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.98, y: 30 }}
+                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                        transition={{ duration: 0.6, type: "spring", bounce: 0.3 }}
+                                        className="space-y-8"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200">
+                                                    <ClipboardList className="w-6 h-6 text-white" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-xl font-bold text-slate-800 uppercase tracking-tight">Clinical Report</h3>
+                                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none">AI-Generated Assessment</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={reset}
+                                                className="px-5 py-2.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm border border-blue-100"
+                                            >
+                                                Start New Analysis
+                                            </button>
                                         </div>
-                                        <div className="prose prose-sm max-w-none text-slate-700 whitespace-pre-wrap leading-relaxed">
-                                            {analysisResult.text}
-                                        </div>
-                                    </div>
 
-                                    <div className="text-xs text-slate-400 text-center">
-                                        Analysis completed at {analysisResult.timestamp.toLocaleTimeString()}
-                                    </div>
-                                </motion.div>
-                            )}
+                                        <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-[2rem] p-8 shadow-sm relative overflow-hidden group">
+                                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                                <Activity className="w-32 h-32" />
+                                            </div>
+                                            <div className="flex items-center gap-2 mb-6 pb-4 border-b border-slate-100">
+                                                <Sparkles className="w-5 h-5 text-blue-600" />
+                                                <span className="text-slate-800 font-bold text-sm tracking-tight">Expert AI Observation</span>
+                                            </div>
+                                            <div className="prose prose-blue prose-sm max-w-none text-slate-700 whitespace-pre-wrap leading-[1.8] font-medium tracking-tight">
+                                                {analysisResult.text}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-center gap-3 py-4 text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] border-t border-slate-100">
+                                            <Clock className="w-3.5 h-3.5" />
+                                            Analysis Finalized {analysisResult.timestamp.toLocaleTimeString()}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </div>
                 </div>

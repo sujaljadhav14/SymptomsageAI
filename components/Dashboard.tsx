@@ -15,6 +15,7 @@ import {
     ChevronRight, Search, Clock, Home, Bell, Sparkles, ArrowRight,
     Zap, Heart, Sun, Moon, CloudSun, Camera, ClipboardList, MapPin, CheckCircle2
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
 const MODEL_NAME = 'gemini-2.0-flash-exp';
@@ -647,7 +648,13 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
     }, [messages, liveTranscription]);
 
     return (
-        <div className="flex h-screen bg-slate-50 text-slate-900 overflow-hidden font-sans">
+        <div className="flex h-screen bg-slate-50 text-slate-900 overflow-hidden font-sans relative">
+            {/* Global AI Pulse Background */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 opacity-30">
+                <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-200/50 rounded-full blur-[120px] animate-pulse" />
+                <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-200/50 rounded-full blur-[120px] animate-pulse [animation-delay:2s]" />
+            </div>
+
             {/* Sidebar Navigation */}
             <aside className="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0 z-20">
                 <div className="p-6 border-b border-slate-100 flex items-center gap-3">
@@ -778,7 +785,6 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                     ⚠️ IMPORTANT: AI assistant only. In case of emergency, call 911 immediately.
                 </div>
 
-                {/* Notification Panel */}
                 <NotificationPanel
                     isOpen={showNotifications}
                     onClose={() => setShowNotifications(false)}
@@ -786,503 +792,599 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                     onMarkAsRead={markNotificationAsRead}
                 />
 
-                {activeView === 'home' ? (
-                    <>
-                        {/* Home Header */}
-                        <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex items-center justify-between shrink-0 sticky top-0 z-10">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
-                                    <Activity className="w-5 h-5 text-white" />
-                                </div>
-                                <div>
-                                    <h1 className="text-xl font-bold text-slate-800">SymptomSage</h1>
-                                    <span className="text-[10px] text-blue-600 font-bold uppercase tracking-widest">AI Health Assistant</span>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => setShowNotifications(true)}
-                                className="relative p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all group"
-                            >
-                                <Bell className="w-5 h-5 text-slate-600 group-hover:text-blue-600" />
-                                {notifications.filter(n => !n.isRead).length > 0 && (
-                                    <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
-                                )}
-                            </button>
-                        </header>
-
-                        <main className="flex-1 overflow-y-auto p-8">
-                            <div className="max-w-4xl mx-auto space-y-8">
-                                {/* AI Greeting */}
-                                <div className="text-center space-y-2">
-                                    <h2 className="text-3xl font-bold text-slate-800">
-                                        {aiGreeting || 'Welcome back! 👋'}
-                                    </h2>
-                                    <p className="text-slate-500">
-                                        How can SymptomSage help you today?
-                                    </p>
-                                </div>
-
-                                {/* Primary & Secondary CTAs */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <button
-                                        onClick={() => setActiveView('consultation')}
-                                        className="group relative overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-8 rounded-3xl shadow-xl shadow-blue-200 hover:shadow-2xl hover:shadow-blue-300 transition-all active:scale-[0.98]"
-                                    >
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-                                        <div className="relative">
-                                            <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-4">
-                                                <Activity className="w-7 h-7" />
-                                            </div>
-                                            <h3 className="text-xl font-bold mb-2">Start Health Assessment</h3>
-                                            <p className="text-white/70 text-sm mb-4">
-                                                Begin a voice-guided consultation with our AI triage assistant
-                                            </p>
-                                            <div className="flex items-center gap-2 text-sm font-semibold">
-                                                <span>Start Now</span>
-                                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                            </div>
-                                        </div>
-                                    </button>
-
-                                    <button
-                                        onClick={() => setActiveView('reports')}
-                                        className="group relative overflow-hidden bg-white border-2 border-slate-200 p-8 rounded-3xl hover:border-blue-200 hover:shadow-xl transition-all active:scale-[0.98]"
-                                    >
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -translate-y-1/2 translate-x-1/2" />
-                                        <div className="relative">
-                                            <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-blue-50 transition-colors">
-                                                <History className="w-7 h-7 text-slate-600 group-hover:text-blue-600" />
-                                            </div>
-                                            <h3 className="text-xl font-bold text-slate-800 mb-2">View Previous Reports</h3>
-                                            <p className="text-slate-500 text-sm mb-4">
-                                                Access your clinical triage history and assessments
-                                            </p>
-                                            <div className="flex items-center gap-2 text-sm font-semibold text-blue-600">
-                                                <span>View All</span>
-                                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                            </div>
-                                        </div>
-                                    </button>
-                                </div>
-
-                                {/* AI Health Tips */}
-                                <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl p-6 border border-amber-100">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
-                                            <Sparkles className="w-5 h-5 text-amber-600" />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-slate-800">AI Health Tips</h3>
-                                            <p className="text-xs text-slate-500">Personalized wellness suggestions</p>
-                                        </div>
-                                    </div>
-                                    {isLoadingTips ? (
-                                        <div className="flex items-center gap-3 text-amber-600">
-                                            <div className="w-4 h-4 border-2 border-amber-300 border-t-amber-600 rounded-full animate-spin" />
-                                            <span className="text-sm">Generating personalized tips...</span>
-                                        </div>
-                                    ) : (
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                            {healthTips.map((tip, index) => (
-                                                <div key={index} className="bg-white/70 p-4 rounded-xl border border-amber-100/50">
-                                                    <div className="flex items-start gap-2">
-                                                        <Zap className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                                                        <p className="text-sm text-slate-700">{tip}</p>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Quick Insights from Latest Report */}
-                                {latestReport && (
-                                    <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-                                                    <Heart className="w-5 h-5 text-blue-600" />
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-bold text-slate-800">Latest Assessment</h3>
-                                                    <p className="text-xs text-slate-500">Quick insights from your recent consultation</p>
-                                                </div>
-                                            </div>
-                                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${latestReport.severity === 'emergency' ? 'bg-red-100 text-red-700' :
-                                                latestReport.severity === 'high' ? 'bg-orange-100 text-orange-700' :
-                                                    latestReport.severity === 'medium' ? 'bg-blue-100 text-blue-700' :
-                                                        'bg-green-100 text-green-700'
-                                                }`}>
-                                                {latestReport.severity}
-                                            </span>
-                                        </div>
-                                        <p className="text-sm text-slate-600 leading-relaxed mb-4 line-clamp-2">
-                                            {latestReport.summary}
-                                        </p>
-                                        <button
-                                            onClick={() => setShowReport(true)}
-                                            className="text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                                        >
-                                            View Full Report
-                                            <ChevronRight className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </main>
-                    </>
-                ) : activeView === 'consultation' ? (
-                    <>
-                        <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex items-center justify-between shrink-0 sticky top-0">
-                            <h2 className="text-xl font-bold text-slate-800">Voice Consultation</h2>
-                            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ring-1 ${status === ConnectionStatus.CONNECTED ? 'bg-green-50 text-green-700 ring-green-200' :
-                                status === ConnectionStatus.CONNECTING ? 'bg-blue-50 text-blue-700 ring-blue-200' :
-                                    status === ConnectionStatus.ERROR ? 'bg-red-50 text-red-700 ring-red-200' :
-                                        'bg-slate-100 text-slate-500 ring-slate-200'
-                                }`}>
-                                <span className={`w-2 h-2 rounded-full ${status === ConnectionStatus.CONNECTED ? 'bg-green-500 animate-pulse' :
-                                    status === ConnectionStatus.CONNECTING ? 'bg-blue-500 animate-pulse' :
-                                        status === ConnectionStatus.ERROR ? 'bg-red-500' :
-                                            'bg-slate-400'
-                                    }`} />
-                                {status}
-                            </div>
-                        </header>
-
-                        <main className="flex-1 flex flex-col md:flex-row p-6 gap-6 overflow-hidden">
-                            <section className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
-                                <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
-                                    <h3 className="font-semibold text-slate-700 text-sm">Real-time Transcript</h3>
-                                    <div className="flex items-center gap-3">
-                                        {latestReport && (
-                                            <button
-                                                onClick={() => setShowReport(true)}
-                                                className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg transition-all active:scale-95"
-                                            >
-                                                <Activity className="w-3.5 h-3.5" />
-                                                Latest Report
-                                            </button>
-                                        )}
-                                        <button
-                                            onClick={() => setMessages([])}
-                                            className="text-xs text-slate-400 hover:text-slate-600 transition-colors font-medium"
-                                        >
-                                            Clear Log
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                                    {messages.length === 0 ? (
-                                        <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-6">
-                                            <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center animate-pulse">
-                                                <Bot className="w-10 h-10 text-blue-500" />
-                                            </div>
-                                            <div>
-                                                <h4 className="text-xl font-bold text-slate-800 mb-2">Ready to Assist</h4>
-                                                <p className="text-slate-500 max-w-sm mx-auto text-sm">
-                                                    Start the session and describe your symptoms. SymptomSage will listen and provide a clinical analysis.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            {messages.map((msg) => (
-                                                <div
-                                                    key={msg.id}
-                                                    className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
-                                                >
-                                                    <div className={`max-w-[85%] rounded-2xl px-5 py-3 shadow-sm text-sm ${msg.role === 'user'
-                                                        ? 'bg-blue-600 text-white rounded-tr-none'
-                                                        : 'bg-slate-100 text-slate-800 rounded-tl-none border border-slate-200'
-                                                        }`}>
-                                                        {msg.text}
-                                                    </div>
-                                                    <span className="text-[10px] text-slate-400 mt-1.5 px-2 font-medium">
-                                                        {msg.role === 'user' ? 'Patient' : 'SymptomSage AI'} • {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                    </span>
-                                                </div>
-                                            ))}
-
-                                            {liveTranscription && (
-                                                <div className="flex flex-col items-end opacity-60">
-                                                    <div className="max-w-[85%] bg-slate-200 text-slate-600 rounded-2xl px-5 py-3 text-sm rounded-tr-none">
-                                                        {liveTranscription}...
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            <div ref={messagesEndRef} />
-
-                                            {/* AI Feature Suggestions */}
-                                            {(showImageAnalysisSuggestion || showHospitalLocatorSuggestion) && (
-                                                <div className="flex flex-wrap gap-2 mt-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                                    {showImageAnalysisSuggestion && (
-                                                        <button
-                                                            onClick={() => setActiveView('image-analysis')}
-                                                            className="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-xl text-blue-700 text-xs font-bold hover:bg-blue-100 transition-all active:scale-95 shadow-sm"
-                                                        >
-                                                            <Camera className="w-3.5 h-3.5" />
-                                                            Try Image Analysis for this symptom
-                                                            <ArrowRight className="w-3 h-3" />
-                                                        </button>
-                                                    )}
-                                                    {showHospitalLocatorSuggestion && (
-                                                        <button
-                                                            onClick={() => setActiveView('hospital-locator')}
-                                                            className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-xs font-bold hover:bg-emerald-100 transition-all active:scale-95 shadow-sm"
-                                                        >
-                                                            <MapPin className="w-3.5 h-3.5" />
-                                                            Find nearby medical facilities
-                                                            <ArrowRight className="w-3 h-3" />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
-                                    {(currentInputText.current || currentOutputText.current) && (
-                                        <div className="flex gap-2 items-center text-blue-500 px-4 py-2 bg-blue-50 rounded-full w-fit animate-pulse border border-blue-100">
-                                            <span className="relative flex h-2 w-2">
-                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-                                            </span>
-                                            <span className="text-xs font-bold uppercase tracking-wider">AI Processing...</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </section>
-
-                            <section className="w-full md:w-80 flex flex-col gap-6 shrink-0">
-                                <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm flex flex-col items-center justify-center space-y-8 relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 p-4 opacity-5">
-                                        <Activity className="w-24 h-24" />
-                                    </div>
-
-                                    <div className="text-center">
-                                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Interaction</h3>
-                                        <p className="text-base font-bold text-slate-800">Voice Control</p>
-                                    </div>
-
-                                    <div className="relative group">
-                                        <div className={`w-40 h-40 rounded-full border-2 flex items-center justify-center transition-all duration-700 ${isUserSpeaking ? 'border-blue-500 scale-110 shadow-2xl shadow-blue-100 bg-blue-50/30' :
-                                            isAssistantSpeaking ? 'border-indigo-500 scale-110 shadow-2xl shadow-indigo-100 bg-indigo-50/30' :
-                                                'border-slate-100 bg-slate-50/20'
-                                            }`}>
-                                            {status === ConnectionStatus.CONNECTED ? (
-                                                <div className="flex flex-col items-center">
-                                                    <LiveVisualizer
-                                                        isActive={isUserSpeaking || isAssistantSpeaking}
-                                                        color={isUserSpeaking ? 'bg-blue-500' : 'bg-indigo-500'}
-                                                    />
-                                                    <div className="mt-4 flex flex-col items-center">
-                                                        <span className={`text-[10px] font-bold uppercase tracking-widest ${isUserSpeaking ? 'text-blue-600' : isAssistantSpeaking ? 'text-indigo-600' : 'text-slate-400'}`}>
-                                                            {isUserSpeaking ? 'Listening' : isAssistantSpeaking ? 'Speaking' : 'Waiting'}
-                                                        </span>
-                                                        <div className="flex gap-1 mt-1">
-                                                            {[1, 2, 3].map(i => (
-                                                                <div key={i} className={`w-1 h-1 rounded-full transition-all duration-300 ${isUserSpeaking || isAssistantSpeaking ? 'bg-current h-2 animate-bounce' : 'bg-slate-200'}`} style={{ animationDelay: `${i * 0.1}s` }} />
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="text-slate-200 group-hover:text-slate-300 transition-colors">
-                                                    <Activity className="w-16 h-16 stroke-[1.5]" />
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="w-full">
-                                        {status !== ConnectionStatus.CONNECTED ? (
-                                            <button
-                                                onClick={startSession}
-                                                disabled={status === ConnectionStatus.CONNECTING}
-                                                className="w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold rounded-2xl shadow-lg shadow-blue-200 transition-all active:scale-95 flex items-center justify-center gap-3"
-                                            >
-                                                {status === ConnectionStatus.CONNECTING ? (
-                                                    <>
-                                                        <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                        </svg>
-                                                        Initializing...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                                                            <Activity className="w-4 h-4" />
-                                                        </div>
-                                                        Start Consultation
-                                                    </>
-                                                )}
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={endSession}
-                                                className="w-full py-4 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 font-bold rounded-2xl shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2"
-                                            >
-                                                <div className="w-8 h-8 rounded-full bg-red-100/50 flex items-center justify-center">
-                                                    <div className="w-3 h-3 bg-red-600 rounded-sm" />
-                                                </div>
-                                                Stop Session
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-xl shadow-blue-100">
-                                    <h3 className="text-xs font-bold text-white/60 uppercase tracking-widest mb-4">Patient Guidelines</h3>
-                                    <ul className="text-xs space-y-4">
-                                        <li className="flex gap-3">
-                                            <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center font-bold text-[10px] shrink-0">1</span>
-                                            <p className="leading-relaxed text-white/90">Describe your primary symptoms clearly and concisely.</p>
-                                        </li>
-                                        <li className="flex gap-3">
-                                            <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center font-bold text-[10px] shrink-0">2</span>
-                                            <p className="leading-relaxed text-white/90">Mention when the symptoms started and any relevant history.</p>
-                                        </li>
-                                        <li className="flex gap-3">
-                                            <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center font-bold text-[10px] shrink-0">3</span>
-                                            <p className="leading-relaxed text-white/90">Answer the AI's clarifying questions to help the assessment.</p>
-                                        </li>
-                                    </ul>
-                                </div>
-
-                                {error && (
-                                    <div className="bg-red-50 border border-red-100 rounded-2xl p-5 text-sm text-red-700 animate-in fade-in slide-in-from-top-4">
-                                        <div className="flex items-center gap-2 font-bold mb-2">
-                                            <Activity className="w-5 h-5 text-red-500" />
-                                            Connection Refused
-                                        </div>
-                                        <p className="text-xs opacity-80 leading-relaxed mb-4">{error}</p>
-                                        <button
-                                            onClick={startSession}
-                                            className="w-full py-2 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-xl transition-colors text-xs"
-                                        >
-                                            Try Reconnecting
-                                        </button>
-                                    </div>
-                                )}
-                            </section>
-                        </main>
-                    </>
-                ) : activeView === 'reports' ? (
-                    <>
-                        <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-6 flex items-center justify-between shrink-0 sticky top-0">
-                            <div>
-                                <h2 className="text-2xl font-bold text-slate-800">Reports History</h2>
-                                <p className="text-sm text-slate-500">Access and manage your clinical triage assessments</p>
-                            </div>
-                            <div className="bg-blue-50 px-4 py-2 rounded-xl flex items-center gap-2 border border-blue-100">
-                                <History className="w-4 h-4 text-blue-600" />
-                                <span className="text-sm font-bold text-blue-700">{allReports.length} Reports Found</span>
-                            </div>
-                        </header>
-
-                        <main className="flex-1 overflow-y-auto p-8 relative">
-                            {isLoadingReports ? (
-                                <div className="h-full flex flex-col items-center justify-center">
-                                    <Activity className="w-12 h-12 text-blue-500 animate-spin mb-4" />
-                                    <p className="text-slate-500 font-medium">Loading your medical history...</p>
-                                </div>
-                            ) : allReports.length === 0 ? (
-                                <div className="h-full flex flex-col items-center justify-center text-center max-w-sm mx-auto space-y-6">
-                                    <div className="w-24 h-24 bg-slate-100 rounded-3xl flex items-center justify-center text-slate-300">
-                                        <Search className="w-10 h-10" />
+                <AnimatePresence mode="wait">
+                    {activeView === 'home' ? (
+                        <motion.div
+                            key="home"
+                            initial={{ opacity: 0, x: 10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -10 }}
+                            className="flex-1 flex flex-col min-w-0 bg-transparent z-10"
+                        >
+                            {/* Home Header */}
+                            <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex items-center justify-between shrink-0 sticky top-0 z-10">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
+                                        <Activity className="w-5 h-5 text-white" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-slate-800 mb-2">No Reports Yet</h3>
-                                        <p className="text-sm text-slate-500 leading-relaxed">
-                                            Your clinical reports will appear here after you complete a consultation session.
-                                        </p>
+                                        <h1 className="text-xl font-bold text-slate-800">SymptomSage</h1>
+                                        <span className="text-[10px] text-blue-600 font-bold uppercase tracking-widest">AI Health Assistant</span>
                                     </div>
-                                    <button
-                                        onClick={() => setActiveView('consultation')}
-                                        className="px-6 py-3 bg-blue-600 text-white font-bold rounded-2xl shadow-lg shadow-blue-100 active:scale-95 transition-all text-sm"
-                                    >
-                                        Start Your First Session
-                                    </button>
                                 </div>
-                            ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                                    {allReports.map((record) => (
-                                        <div
-                                            key={record.id}
-                                            className="bg-white rounded-3xl border border-slate-200 p-6 hover:shadow-xl hover:shadow-slate-200/50 transition-all group relative overflow-hidden flex flex-col"
-                                        >
-                                            <div className={`absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity`}>
-                                                <Activity className="w-20 h-20" />
-                                            </div>
+                                <button
+                                    onClick={() => setShowNotifications(true)}
+                                    className="relative p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all group"
+                                >
+                                    <Bell className="w-5 h-5 text-slate-600 group-hover:text-blue-600" />
+                                    {notifications.filter(n => !n.isRead).length > 0 && (
+                                        <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
+                                    )}
+                                </button>
+                            </header>
 
-                                            <div className="flex items-start justify-between mb-6">
-                                                <div className="space-y-1">
-                                                    <div className="flex items-center gap-2">
-                                                        <Clock className="w-3.5 h-3.5 text-slate-400" />
-                                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                                                            {new Date(record.timestamp).toLocaleDateString(undefined, {
-                                                                month: 'short',
-                                                                day: 'numeric',
-                                                                year: 'numeric'
-                                                            })}
+                            <main className="flex-1 overflow-y-auto p-8">
+                                <div className="max-w-4xl mx-auto space-y-8">
+                                    {/* AI Greeting */}
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.5 }}
+                                        className="text-center space-y-2"
+                                    >
+                                        <h2 className="text-3xl font-bold text-slate-800 bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-blue-800 to-slate-900">
+                                            {aiGreeting || 'Welcome back! 👋'}
+                                        </h2>
+                                        <p className="text-slate-500">
+                                            How can SymptomSage help you today?
+                                        </p>
+                                    </motion.div>
+
+                                    {/* Primary & Secondary CTAs */}
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.5, delay: 0.1 }}
+                                        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                                    >
+                                        <button
+                                            onClick={() => setActiveView('consultation')}
+                                            className="group relative overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-8 rounded-3xl shadow-xl shadow-blue-200 hover:shadow-2xl hover:shadow-blue-300 transition-all active:scale-[0.98]"
+                                        >
+                                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500" />
+                                            <div className="relative">
+                                                <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-4 backdrop-blur-sm">
+                                                    <Activity className="w-7 h-7" />
+                                                </div>
+                                                <h3 className="text-xl font-bold mb-2">Start Health Assessment</h3>
+                                                <p className="text-white/70 text-sm mb-4">
+                                                    Begin a voice-guided consultation with our AI triage assistant
+                                                </p>
+                                                <div className="flex items-center gap-2 text-sm font-semibold">
+                                                    <span>Start Now</span>
+                                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                                </div>
+                                            </div>
+                                        </button>
+
+                                        <button
+                                            onClick={() => setActiveView('reports')}
+                                            className="group relative overflow-hidden bg-white border-2 border-slate-200 p-8 rounded-3xl hover:border-blue-200 hover:shadow-xl transition-all active:scale-[0.98]"
+                                        >
+                                            <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-500" />
+                                            <div className="relative">
+                                                <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-blue-50 transition-colors">
+                                                    <History className="w-7 h-7 text-slate-100 group-hover:text-blue-600 fill-slate-500 group-hover:fill-blue-100" />
+                                                </div>
+                                                <h3 className="text-xl font-bold text-slate-800 mb-2">View Previous Reports</h3>
+                                                <p className="text-slate-500 text-sm mb-4">
+                                                    Access your clinical triage history and assessments
+                                                </p>
+                                                <div className="flex items-center gap-2 text-sm font-semibold text-blue-600">
+                                                    <span>View All</span>
+                                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                                </div>
+                                            </div>
+                                        </button>
+                                    </motion.div>
+
+                                    {/* AI Health Tips */}
+                                    <div className="bg-white/40 backdrop-blur-xl rounded-[2rem] p-8 border border-white/60 shadow-sm relative overflow-hidden group">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-indigo-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                                        <div className="relative z-10">
+                                            <div className="flex items-center gap-4 mb-6">
+                                                <div className="w-12 h-12 bg-gradient-to-tr from-amber-100 to-orange-100 rounded-2xl flex items-center justify-center shadow-inner">
+                                                    <Sparkles className="w-6 h-6 text-amber-600 drop-shadow-sm" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-lg font-bold text-slate-800">Clinical Insights</h3>
+                                                    <p className="text-sm text-slate-500 font-medium">Personalized wellness guidance</p>
+                                                </div>
+                                            </div>
+                                            {isLoadingTips ? (
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                    {[1, 2, 3].map(i => (
+                                                        <div key={i} className="h-24 bg-slate-200/40 rounded-2xl animate-pulse" />
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                    {healthTips.map((tip, index) => (
+                                                        <motion.div
+                                                            key={index}
+                                                            initial={{ opacity: 0, scale: 0.95 }}
+                                                            animate={{ opacity: 1, scale: 1 }}
+                                                            transition={{ delay: index * 0.1 }}
+                                                            className="bg-white/60 backdrop-blur-sm p-5 rounded-2xl border border-white shadow-sm hover:shadow-md hover:border-blue-100 transition-all cursor-default"
+                                                        >
+                                                            <div className="bg-amber-100/50 w-7 h-7 rounded-lg flex items-center justify-center mb-3">
+                                                                <Zap className="w-4 h-4 text-amber-600" />
+                                                            </div>
+                                                            <p className="text-sm text-slate-700 font-medium leading-relaxed">{tip}</p>
+                                                        </motion.div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Quick Insights from Latest Report */}
+                                    {latestReport && (
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.95 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ duration: 0.5, delay: 0.2 }}
+                                            className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm"
+                                        >
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                                                        <Heart className="w-5 h-5 text-blue-600" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-bold text-slate-800">Latest Assessment</h3>
+                                                        <p className="text-xs text-slate-500">Quick insights from your recent consultation</p>
+                                                    </div>
+                                                </div>
+                                                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${latestReport.severity === 'emergency' ? 'bg-red-100 text-red-700' :
+                                                    latestReport.severity === 'high' ? 'bg-orange-100 text-orange-700' :
+                                                        latestReport.severity === 'medium' ? 'bg-blue-100 text-blue-700' :
+                                                            'bg-green-100 text-green-700'
+                                                    }`}>
+                                                    {latestReport.severity}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm text-slate-600 leading-relaxed mb-4 line-clamp-2">
+                                                {latestReport.summary}
+                                            </p>
+                                            <button
+                                                onClick={() => setShowReport(true)}
+                                                className="text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                                            >
+                                                View Full Report
+                                                <ChevronRight className="w-4 h-4" />
+                                            </button>
+                                        </motion.div>
+                                    )}
+                                </div>
+                            </main>
+                        </motion.div>
+                    ) : activeView === 'consultation' ? (
+                        <motion.div
+                            key="consultation"
+                            initial={{ opacity: 0, x: 10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -10 }}
+                            className="flex-1 flex flex-col min-w-0 bg-white shadow-2xl skew-x-[-0.5] origin-top-right z-10"
+                        >
+                            <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex items-center justify-between shrink-0 sticky top-0">
+                                <h2 className="text-xl font-bold text-slate-800">Voice Consultation</h2>
+                                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ring-1 ${status === ConnectionStatus.CONNECTED ? 'bg-green-50 text-green-700 ring-green-200' :
+                                    status === ConnectionStatus.CONNECTING ? 'bg-blue-50 text-blue-700 ring-blue-200' :
+                                        status === ConnectionStatus.ERROR ? 'bg-red-50 text-red-700 ring-red-200' :
+                                            'bg-slate-100 text-slate-500 ring-slate-200'
+                                    }`}>
+                                    <span className={`w-2 h-2 rounded-full ${status === ConnectionStatus.CONNECTED ? 'bg-green-500 animate-pulse' :
+                                        status === ConnectionStatus.CONNECTING ? 'bg-blue-500 animate-pulse' :
+                                            status === ConnectionStatus.ERROR ? 'bg-red-500' :
+                                                'bg-slate-400'
+                                        }`} />
+                                    {status}
+                                </div>
+                            </header>
+
+                            <main className="flex-1 flex flex-col md:flex-row p-6 gap-6 overflow-hidden">
+                                <section className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+                                    <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
+                                        <h3 className="font-semibold text-slate-700 text-sm">Real-time Transcript</h3>
+                                        <div className="flex items-center gap-3">
+                                            {latestReport && (
+                                                <button
+                                                    onClick={() => setShowReport(true)}
+                                                    className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg transition-all active:scale-95"
+                                                >
+                                                    <Activity className="w-3.5 h-3.5" />
+                                                    Latest Report
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => setMessages([])}
+                                                className="text-xs text-slate-400 hover:text-slate-600 transition-colors font-medium"
+                                            >
+                                                Clear Log
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                                        {messages.length === 0 ? (
+                                            <div className="h-full flex flex-col items-center justify-center text-center p-12 space-y-10">
+                                                <motion.div
+                                                    initial={{ scale: 0.8, opacity: 0 }}
+                                                    animate={{ scale: 1, opacity: 1 }}
+                                                    transition={{ type: "spring", stiffness: 100 }}
+                                                    className="relative"
+                                                >
+                                                    <div className="absolute inset-0 bg-blue-500 rounded-full blur-3xl opacity-20 animate-pulse" />
+                                                    <div className="w-28 h-28 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-full flex items-center justify-center shadow-2xl relative z-10">
+                                                        <Activity className="w-14 h-14 text-white drop-shadow-lg" />
+                                                    </div>
+                                                </motion.div>
+                                                <motion.div
+                                                    initial={{ y: 20, opacity: 0 }}
+                                                    animate={{ y: 0, opacity: 1 }}
+                                                    transition={{ delay: 0.2 }}
+                                                    className="space-y-4 max-w-md"
+                                                >
+                                                    <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">Ready to Assist</h3>
+                                                    <p className="text-slate-500 text-sm font-medium leading-relaxed">
+                                                        Tap the button below to start your voice-guided triage.
+                                                        I'll listen to your symptoms and provide immediate guidance.
+                                                    </p>
+                                                </motion.div>
+
+                                                <motion.div
+                                                    initial={{ opacity: 0 }}
+                                                    animate={{ opacity: 1 }}
+                                                    transition={{ delay: 0.4 }}
+                                                    className="flex flex-wrap items-center justify-center gap-2"
+                                                >
+                                                    {['Headache', 'Fever', 'Sore Throat', 'Abdominal Pain'].map((symptom, i) => (
+                                                        <span key={i} className="px-4 py-2 bg-white border border-slate-200 text-slate-500 rounded-xl text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                                                            {symptom}
+                                                        </span>
+                                                    ))}
+                                                </motion.div>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                {messages.map((msg) => (
+                                                    <div
+                                                        key={msg.id}
+                                                        className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+                                                    >
+                                                        <div className={`max-w-[85%] rounded-2xl px-5 py-3 shadow-sm text-sm ${msg.role === 'user'
+                                                            ? 'bg-blue-600 text-white rounded-tr-none'
+                                                            : 'bg-slate-100 text-slate-800 rounded-tl-none border border-slate-200'
+                                                            }`}>
+                                                            {msg.text}
+                                                        </div>
+                                                        <span className="text-[10px] text-slate-400 mt-1.5 px-2 font-medium">
+                                                            {msg.role === 'user' ? 'Patient' : 'SymptomSage AI'} • {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                         </span>
                                                     </div>
-                                                    <h4 className="text-lg font-bold text-slate-800 leading-tight pr-8">Triage Assessment</h4>
-                                                </div>
-                                                <div className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${record.report.severity === 'emergency' ? 'bg-red-50 text-red-600 ring-1 ring-red-100' :
-                                                    record.report.severity === 'high' ? 'bg-orange-50 text-orange-600 ring-1 ring-orange-100' :
-                                                        'bg-green-50 text-green-600 ring-1 ring-green-100'
-                                                    }`}>
-                                                    {record.report.severity}
-                                                </div>
+                                                ))}
+
+                                                {liveTranscription && (
+                                                    <div className="flex flex-col items-end opacity-60">
+                                                        <div className="max-w-[85%] bg-slate-200 text-slate-600 rounded-2xl px-5 py-3 text-sm rounded-tr-none">
+                                                            {liveTranscription}...
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                <div ref={messagesEndRef} />
+
+                                                {/* AI Feature Suggestions */}
+                                                {(showImageAnalysisSuggestion || showHospitalLocatorSuggestion) && (
+                                                    <div className="flex flex-wrap gap-2 mt-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                                        {showImageAnalysisSuggestion && (
+                                                            <button
+                                                                onClick={() => setActiveView('image-analysis')}
+                                                                className="flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-xl text-blue-700 text-xs font-bold hover:bg-blue-100 transition-all active:scale-95 shadow-sm"
+                                                            >
+                                                                <Camera className="w-3.5 h-3.5" />
+                                                                Try Image Analysis for this symptom
+                                                                <ArrowRight className="w-3 h-3" />
+                                                            </button>
+                                                        )}
+                                                        {showHospitalLocatorSuggestion && (
+                                                            <button
+                                                                onClick={() => setActiveView('hospital-locator')}
+                                                                className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-xs font-bold hover:bg-emerald-100 transition-all active:scale-95 shadow-sm"
+                                                            >
+                                                                <MapPin className="w-3.5 h-3.5" />
+                                                                Find nearby medical facilities
+                                                                <ArrowRight className="w-3 h-3" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
+                                        {(currentInputText.current || currentOutputText.current) && (
+                                            <div className="flex gap-2 items-center text-blue-500 px-4 py-2 bg-blue-50 rounded-full w-fit animate-pulse border border-blue-100">
+                                                <span className="relative flex h-2 w-2">
+                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                                                </span>
+                                                <span className="text-xs font-bold uppercase tracking-wider">AI Processing...</span>
                                             </div>
+                                        )}
+                                    </div>
+                                </section>
 
-                                            <p className="text-sm text-slate-600 line-clamp-3 mb-6 flex-1 leading-relaxed">
-                                                {record.report.summary}
-                                            </p>
+                                <section className="w-full md:w-80 flex flex-col gap-6 shrink-0">
+                                    <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm flex flex-col items-center justify-center space-y-8 relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-4 opacity-5">
+                                            <Activity className="w-24 h-24" />
+                                        </div>
 
-                                            <div className="flex items-center gap-2 pt-6 border-t border-slate-100">
-                                                <button
-                                                    onClick={() => {
-                                                        setSelectedReport(record);
-                                                        setShowReport(true);
-                                                        setLatestReport(record.report);
-                                                    }}
-                                                    className="flex-1 py-2.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white font-bold rounded-xl transition-all text-xs flex items-center justify-center gap-2 shadow-sm"
-                                                >
-                                                    <Search className="w-3.5 h-3.5" />
-                                                    View Details
-                                                </button>
-                                                <button
-                                                    onClick={() => downloadReport(record.report)}
-                                                    className="p-2.5 bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-800 rounded-xl transition-all border border-slate-200 active:scale-95"
-                                                    title="Download Report (TXT)"
-                                                >
-                                                    <Download className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => emailReport(record.report)}
-                                                    disabled={sendingEmail}
-                                                    className="p-2.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all border border-blue-100 active:scale-95 disabled:opacity-50"
-                                                    title="Email Report to Me"
-                                                >
-                                                    {sendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-                                                </button>
+                                        <div className="text-center">
+                                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Interaction</h3>
+                                            <p className="text-base font-bold text-slate-800">Voice Control</p>
+                                        </div>
+
+                                        <div className="relative group">
+                                            <div className={`w-40 h-40 rounded-full border-2 flex items-center justify-center transition-all duration-700 ${isUserSpeaking ? 'border-blue-500 scale-110 shadow-2xl shadow-blue-100 bg-blue-50/30' :
+                                                isAssistantSpeaking ? 'border-indigo-500 scale-110 shadow-2xl shadow-indigo-100 bg-indigo-50/30' :
+                                                    'border-slate-100 bg-slate-50/20'
+                                                }`}>
+                                                {status === ConnectionStatus.CONNECTED ? (
+                                                    <div className="flex flex-col items-center">
+                                                        <LiveVisualizer
+                                                            isActive={isUserSpeaking || isAssistantSpeaking}
+                                                            color={isUserSpeaking ? 'bg-blue-500' : 'bg-indigo-500'}
+                                                        />
+                                                        <div className="mt-4 flex flex-col items-center">
+                                                            <span className={`text-[10px] font-bold uppercase tracking-widest ${isUserSpeaking ? 'text-blue-600' : isAssistantSpeaking ? 'text-indigo-600' : 'text-slate-400'}`}>
+                                                                {isUserSpeaking ? 'Listening' : isAssistantSpeaking ? 'Speaking' : 'Waiting'}
+                                                            </span>
+                                                            <div className="flex gap-1 mt-1">
+                                                                {[1, 2, 3].map(i => (
+                                                                    <div key={i} className={`w-1 h-1 rounded-full transition-all duration-300 ${isUserSpeaking || isAssistantSpeaking ? 'bg-current h-2 animate-bounce' : 'bg-slate-200'}`} style={{ animationDelay: `${i * 0.1}s` }} />
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-slate-200 group-hover:text-slate-300 transition-colors">
+                                                        <Activity className="w-16 h-16 stroke-[1.5]" />
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-                                    ))}
+
+                                        <div className="w-full">
+                                            {status !== ConnectionStatus.CONNECTED ? (
+                                                <button
+                                                    onClick={startSession}
+                                                    disabled={status === ConnectionStatus.CONNECTING}
+                                                    className="w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold rounded-2xl shadow-lg shadow-blue-200 transition-all active:scale-95 flex items-center justify-center gap-3"
+                                                >
+                                                    {status === ConnectionStatus.CONNECTING ? (
+                                                        <>
+                                                            <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                            </svg>
+                                                            Initializing...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                                                                <Activity className="w-4 h-4" />
+                                                            </div>
+                                                            Start Consultation
+                                                        </>
+                                                    )}
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={endSession}
+                                                    className="w-full py-4 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 font-bold rounded-2xl shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2"
+                                                >
+                                                    <div className="w-8 h-8 rounded-full bg-red-100/50 flex items-center justify-center">
+                                                        <div className="w-3 h-3 bg-red-600 rounded-sm" />
+                                                    </div>
+                                                    Stop Session
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-xl shadow-blue-100">
+                                        <h3 className="text-xs font-bold text-white/60 uppercase tracking-widest mb-4">Patient Guidelines</h3>
+                                        <ul className="text-xs space-y-4">
+                                            <li className="flex gap-3">
+                                                <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center font-bold text-[10px] shrink-0">1</span>
+                                                <p className="leading-relaxed text-white/90">Describe your primary symptoms clearly and concisely.</p>
+                                            </li>
+                                            <li className="flex gap-3">
+                                                <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center font-bold text-[10px] shrink-0">2</span>
+                                                <p className="leading-relaxed text-white/90">Mention when the symptoms started and any relevant history.</p>
+                                            </li>
+                                            <li className="flex gap-3">
+                                                <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center font-bold text-[10px] shrink-0">3</span>
+                                                <p className="leading-relaxed text-white/90">Answer the AI's clarifying questions to help the assessment.</p>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    {error && (
+                                        <div className="bg-red-50 border border-red-100 rounded-2xl p-5 text-sm text-red-700 animate-in fade-in slide-in-from-top-4">
+                                            <div className="flex items-center gap-2 font-bold mb-2">
+                                                <Activity className="w-5 h-5 text-red-500" />
+                                                Connection Refused
+                                            </div>
+                                            <p className="text-xs opacity-80 leading-relaxed mb-4">{error}</p>
+                                            <button
+                                                onClick={startSession}
+                                                className="w-full py-2 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-xl transition-colors text-xs"
+                                            >
+                                                Try Reconnecting
+                                            </button>
+                                        </div>
+                                    )}
+                                </section>
+                            </main>
+                        </motion.div>
+                    ) : activeView === 'reports' ? (
+                        <motion.div
+                            key="reports"
+                            initial={{ opacity: 0, x: 10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -10 }}
+                            className="flex-1 flex flex-col min-w-0 bg-white z-10"
+                        >
+                            <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-6 flex items-center justify-between shrink-0 sticky top-0">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-slate-800">Reports History</h2>
+                                    <p className="text-sm text-slate-500">Access and manage your clinical triage assessments</p>
                                 </div>
-                            )}
-                        </main>
-                    </>
-                ) : activeView === 'assessment' ? (
-                    <OfflineAssessmentView />
-                ) : activeView === 'hospital-locator' ? (
-                    <HospitalLocator onBack={() => setActiveView('home')} />
-                ) : activeView === 'image-analysis' ? (
-                    <ImageAnalysis onBack={() => setActiveView('home')} />
-                ) : null}
+                                <div className="bg-blue-50 px-4 py-2 rounded-xl flex items-center gap-2 border border-blue-100">
+                                    <History className="w-4 h-4 text-blue-600" />
+                                    <span className="text-sm font-bold text-blue-700">{allReports.length} Reports Found</span>
+                                </div>
+                            </header>
+
+                            <main className="flex-1 overflow-y-auto p-8 relative">
+                                {isLoadingReports ? (
+                                    <div className="h-full flex flex-col items-center justify-center">
+                                        <Activity className="w-12 h-12 text-blue-500 animate-spin mb-4" />
+                                        <p className="text-slate-500 font-medium">Loading your medical history...</p>
+                                    </div>
+                                ) : allReports.length === 0 ? (
+                                    <div className="h-full flex flex-col items-center justify-center text-center max-w-sm mx-auto space-y-6">
+                                        <div className="w-24 h-24 bg-slate-100 rounded-3xl flex items-center justify-center text-slate-300">
+                                            <Search className="w-10 h-10" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-slate-800 mb-2">No Reports Yet</h3>
+                                            <p className="text-sm text-slate-500 leading-relaxed">
+                                                Your clinical reports will appear here after you complete a consultation session.
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() => setActiveView('consultation')}
+                                            className="px-6 py-3 bg-blue-600 text-white font-bold rounded-2xl shadow-lg shadow-blue-100 active:scale-95 transition-all text-sm"
+                                        >
+                                            Start Your First Session
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                                        {allReports.map((record) => (
+                                            <div
+                                                key={record.id}
+                                                className="bg-white rounded-3xl border border-slate-200 p-6 hover:shadow-xl hover:shadow-slate-200/50 transition-all group relative overflow-hidden flex flex-col"
+                                            >
+                                                <div className={`absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity`}>
+                                                    <Activity className="w-20 h-20" />
+                                                </div>
+
+                                                <div className="flex items-start justify-between mb-6">
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <Clock className="w-3.5 h-3.5 text-slate-400" />
+                                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                                                {new Date(record.timestamp).toLocaleDateString(undefined, {
+                                                                    month: 'short',
+                                                                    day: 'numeric',
+                                                                    year: 'numeric'
+                                                                })}
+                                                            </span>
+                                                        </div>
+                                                        <h4 className="text-lg font-bold text-slate-800 leading-tight pr-8">Triage Assessment</h4>
+                                                    </div>
+                                                    <div className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${record.report.severity === 'emergency' ? 'bg-red-50 text-red-600 ring-1 ring-red-100' :
+                                                        record.report.severity === 'high' ? 'bg-orange-50 text-orange-600 ring-1 ring-orange-100' :
+                                                            'bg-green-50 text-green-600 ring-1 ring-green-100'
+                                                        }`}>
+                                                        {record.report.severity}
+                                                    </div>
+                                                </div>
+
+                                                <p className="text-sm text-slate-600 line-clamp-3 mb-6 flex-1 leading-relaxed">
+                                                    {record.report.summary}
+                                                </p>
+
+                                                <div className="flex items-center gap-2 pt-6 border-t border-slate-100">
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedReport(record);
+                                                            setShowReport(true);
+                                                            setLatestReport(record.report);
+                                                        }}
+                                                        className="flex-1 py-2.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white font-bold rounded-xl transition-all text-xs flex items-center justify-center gap-2 shadow-sm"
+                                                    >
+                                                        <Search className="w-3.5 h-3.5" />
+                                                        View Details
+                                                    </button>
+                                                    <button
+                                                        onClick={() => downloadReport(record.report)}
+                                                        className="p-2.5 bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-800 rounded-xl transition-all border border-slate-200 active:scale-95"
+                                                        title="Download Report (TXT)"
+                                                    >
+                                                        <Download className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => emailReport(record.report)}
+                                                        disabled={sendingEmail}
+                                                        className="p-2.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all border border-blue-100 active:scale-95 disabled:opacity-50"
+                                                        title="Email Report to Me"
+                                                    >
+                                                        {sendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </main>
+                        </motion.div>
+                    ) : activeView === 'assessment' ? (
+                        <motion.div
+                            key="assessment"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="flex-1 overflow-hidden z-10"
+                        >
+                            <OfflineAssessmentView />
+                        </motion.div>
+                    ) : activeView === 'hospital-locator' ? (
+                        <motion.div
+                            key="hospital-locator"
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.98 }}
+                            className="flex-1 overflow-hidden z-10"
+                        >
+                            <HospitalLocator onBack={() => setActiveView('home')} />
+                        </motion.div>
+                    ) : activeView === 'image-analysis' ? (
+                        <motion.div
+                            key="image-analysis"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 20 }}
+                            className="flex-1 overflow-hidden z-10"
+                        >
+                            <ImageAnalysis onBack={() => setActiveView('home')} />
+                        </motion.div>
+                    ) : null}
+                </AnimatePresence>
             </div>
 
             {/* Loading Overlay for Report Generation */}

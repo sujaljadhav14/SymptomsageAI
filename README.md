@@ -24,33 +24,56 @@ Healthcare accessibility is broken by three main barriers:
 2.  **Delayed Access:** Doctors are rarely available for "instant" triage, and clinics can be far.
 3.  **Inflexible Apps:** Most existing health apps are slow, text-heavy, and fail without a strong internet connection.
 
-**The Challenge:** Create a fast, human-like, explainable medical interaction that works in real-world, unpredictable conditions.
+---
+
+## 🔄 System Workflow
+
+```mermaid
+graph TD
+    A[User Symptom] --> B{Choose Mode}
+    B -- Voice/Live --> C[Gemini Live API]
+    B -- Low Network --> D[Local Expert Engine]
+    B -- Medical Image --> E[Gemini Vision Analysis]
+    
+    C --> F[Real-time Triage Logic]
+    D --> F
+    E --> F
+    
+    F --> G[Risk Assessment & Summary]
+    G --> H{High Risk?}
+    
+    H -- Yes --> I[Hospital Locator & Maps]
+    H -- No --> J[Clinical Care Tips]
+    
+    G --> K[PDF/Email Report Generation]
+    K --> L[Patient History Memory]
+```
 
 ---
 
 ## 🚀 Innovation: The "Google Solution"
 
-### 🎙️ 1. Conversational AI (Slide 03)
+### 🎙️ 1. Conversational AI
 We've replaced static forms with a **Real-Time Doctor-Patient Dialogue**.
 - **The Tech:** Gemini Live API & Google AI Studio.
 - **Outcome:** The AI understands symptoms via voice/text, generates logical follow-up questions, and maintains a natural consultation flow.
 
-### 🧠 2. Severity & Medical Reasoning (Slide 04)
+### 🧠 2. Severity & Medical Reasoning
 Trust is built on explanation.
 - **The Tech:** Gemini Reasoning Engine.
 - **Outcome:** SymptomSage assigns risk scores (**Emergency | High | Medium | Low**) and—most importantly—**explains why**, providing traceable logic for its guidance.
 
-### 📋 3. Smart Report Generation (Slide 05)
+### 📋 3. Smart Report Generation
 Actionable data is better than general advice.
 - **The Tech:** Gemini & Cloud Run.
 - **Outcome:** Converts voice conversations into structured clinical reports, including recommended tests and immediate precautions.
 
-### 📍 4. Location-Based Guidance (Slide 06)
+### 📍 4. Location-Based Guidance
 Closing the loop between AI and the real world.
 - **The Tech:** Google Maps API & GCP Infrastructure.
 - **Outcome:** When high-risk symptoms are detected, the system immediately fetches nearby hospitals, doctors, and labs.
 
-### 📡 5. Low Network & Offline Support (Slide 07)
+### 📡 5. Low Network & Offline Support
 Healthcare for the "Next Billion" users.
 - **The Tech:** Optimized prompt strategy & Offline Expert System.
 - **Outcome:** Works during travel, in rural areas, or during emergencies where data is unstable.
@@ -92,6 +115,7 @@ We use a **Fully Serverless** architecture to ensure zero maintenance and infini
 - `/components`: UI Layer (Dashboard, Voice Triage, Image Analysis)
 - `/server`: Node.js Backend for Email & GCP integration
 - `/utils`: AI orchestration and Offline Engine logic
+- `/views`: Specialized view containers
 - `/Dockerfile`: Consolidated multi-stage container build
 
 <div align="center">

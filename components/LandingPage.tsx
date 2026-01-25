@@ -126,24 +126,50 @@ const LandingPage: React.FC = () => {
                     {/* Product Preview */}
                     <motion.div
                         variants={itemVariants}
-                        className="mt-20 relative max-w-5xl mx-auto px-4"
+                        className="mt-20 relative max-w-5xl mx-auto px-4 perspective-1000"
                     >
-                        <div className="absolute inset-0 bg-blue-600/5 blur-[80px] rounded-[60px] -z-10" />
-                        <div className="bg-white rounded-[32px] shadow-2xl border border-slate-200 p-2 md:p-4 rotate-x-12 perspective-1000">
-                            <div className="bg-slate-50/50 rounded-[22px] border border-slate-100 p-6 flex items-start gap-4">
-                                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center shrink-0">
-                                    <Activity className="w-5 h-5 text-white" />
+                        <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/20 via-indigo-600/10 to-transparent blur-[100px] rounded-[60px] -z-10 animate-pulse" />
+                        <motion.div
+                            whileHover={{ rotateX: 2, rotateY: -2, scale: 1.01 }}
+                            className="bg-white rounded-[40px] shadow-2xl border border-slate-200 p-3 md:p-6 relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 animate-shimmer bg-[length:200%_auto]" />
+                            <div className="bg-slate-50/80 backdrop-blur-md rounded-[28px] border border-slate-200/60 p-8 flex flex-col md:flex-row items-start gap-8">
+                                <div className="w-16 h-16 bg-blue-600 rounded-[20px] shadow-lg shadow-blue-200 flex items-center justify-center shrink-0">
+                                    <Activity className="w-8 h-8 text-white animate-pulse" />
                                 </div>
-                                <div className="flex-1 text-left space-y-3">
-                                    <div className="h-4 bg-slate-200 rounded-full w-3/4 animate-pulse" />
-                                    <div className="h-4 bg-slate-200 rounded-full w-1/2 animate-pulse" />
-                                    <div className="pt-2 flex gap-2">
-                                        <div className="h-8 w-24 bg-blue-100 rounded-lg" />
-                                        <div className="h-8 w-24 bg-slate-100 rounded-lg" />
+                                <div className="flex-1 text-left space-y-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] font-bold uppercase tracking-widest">AI System Active</div>
+                                        <div className="text-slate-400 text-xs font-medium">Processing Patient Input...</div>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <motion.div
+                                            initial={{ width: "30%" }}
+                                            animate={{ width: "85%" }}
+                                            transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
+                                            className="h-3 bg-blue-600/10 rounded-full overflow-hidden"
+                                        >
+                                            <div className="h-full bg-blue-600/30 w-1/3 animate-shimmer bg-[length:200%_auto] bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+                                        </motion.div>
+                                        <motion.div
+                                            initial={{ width: "20%" }}
+                                            animate={{ width: "60%" }}
+                                            transition={{ duration: 1.5, delay: 0.5, repeat: Infinity, repeatType: "reverse" }}
+                                            className="h-3 bg-slate-200 rounded-full"
+                                        />
+                                    </div>
+                                    <div className="flex flex-wrap gap-3 pt-2">
+                                        {['Clinical Reasoning', 'Risk Assessment', 'Nearby Support'].map((tag, i) => (
+                                            <div key={i} className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 shadow-sm flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                                {tag}
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
                     </motion.div>
                 </motion.div>
             </section>
