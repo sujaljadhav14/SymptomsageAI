@@ -8,18 +8,18 @@ export PROJECT_ID=$(gcloud config get-value project)
 echo "🚀 Starting deployment for GCP Project: $PROJECT_ID"
 
 # Frontend Build Arguments (taken from your .env.local)
-VITE_GEMINI_API_KEY="AIzaSyCJyUMO0ruHYue484h6qetjrHK2aUgwg98"
-VITE_CLERK_PUBLISHABLE_KEY="pk_test_aGlwLXlhay04LmNsZXJrLmFjY291bnRzLmRldiQ"
-VITE_SUPABASE_URL="https://ygkkwqdetqabcwfjxnsr.supabase.co"
-VITE_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlna2t3cWRldHFhYmN3Zmp4bnNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxODYwOTYsImV4cCI6MjA4NDc2MjA5Nn0.bJWuxmZr_Yd8SwVcIahjrrF7EOKKwseMlF5yWkIgyRA"
-VITE_GOOGLE_MAPS_API_KEY="AIzaSyBXYGrE4E14sue5EyFby4LZkqQ91J6Gqx8"
-VITE_SIMLI_API_KEY="c2mo7xh7smk59uxci8lsch"
+VITE_GEMINI_API_KEY=""
+VITE_CLERK_PUBLISHABLE_KEY=""
+VITE_SUPABASE_URL="https://.supabase.co"
+VITE_SUPABASE_ANON_KEY=""
+VITE_GOOGLE_MAPS_API_KEY=""
+VITE_SIMLI_API_KEY=""
 
 # Backend Runtime Secrets
 SMTP_HOST="smtp.gmail.com"
 SMTP_PORT="587"
-SMTP_USER="pranaysanap11@gmail.com"
-SMTP_PASS="losk wwhm dlcc tivz"
+SMTP_USER="@gmail.com"
+SMTP_PASS=""
 
 # --- 2. BUILD IMAGES ---
 echo "📦 Building images via Cloud Build..."
