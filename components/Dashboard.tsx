@@ -16,7 +16,7 @@ import {
     Zap, Heart, Sun, Moon, CloudSun, Camera, ClipboardList, MapPin, CheckCircle2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const MODEL_NAME = 'gemini-2.0-flash-exp';
 const SYSTEM_INSTRUCTION = `
@@ -34,6 +34,14 @@ Guidelines:
 const Dashboard: React.FC = () => {
     const { user } = useUser();
     const navigate = useNavigate();
+    const { view: routeView } = useParams();
+
+    // Valid views for the dashboard
+    const validViews = ['home', 'consultation', 'reports', 'assessment', 'hospital-locator', 'image-analysis'];
+    const activeView = (routeView && validViews.includes(routeView)) ? routeView as any : 'home';
+
+    const setActiveView = (view: string) => navigate(`/app/${view}`);
+
     const [status, setStatus] = useState<ConnectionStatus>(ConnectionStatus.DISCONNECTED);
     const [messages, setMessages] = useState<Message[]>([]);
     const [isUserSpeaking, setIsUserSpeaking] = useState(false);
@@ -43,7 +51,6 @@ const Dashboard: React.FC = () => {
     const [showDocs, setShowDocs] = useState(false);
     const [latestReport, setLatestReport] = useState<ClinicalReport | null>(null);
     const [showReport, setShowReport] = useState(false);
-    const [activeView, setActiveView] = useState<'home' | 'consultation' | 'reports' | 'assessment' | 'hospital-locator' | 'image-analysis'>('home');
     const [allReports, setAllReports] = useState<ClinicalReportRecord[]>([]);
     const [selectedReport, setSelectedReport] = useState<ClinicalReportRecord | null>(null);
     const [isLoadingReports, setIsLoadingReports] = useState(false);
@@ -1437,7 +1444,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                         <div className="p-8 overflow-y-auto space-y-6 text-slate-600 leading-relaxed">
                             <section>
                                 <h3 className="text-lg font-bold text-slate-800 mb-2">Introduction</h3>
-                                <p>SymptomSage AI is a state-of-the-art medical triage assistant powered by Gemini 2.5. It uses real-time audio to interact with users, helping them understand their health symptoms and directing them to the appropriate level of care.</p>
+                                <p>SymptomSage AI is a state-of-the-art medical triage assistant powered by Gemini 2.0 Flash. It uses real-time audio to interact with users, helping them understand their health symptoms and directing them to the appropriate level of care.</p>
                             </section>
 
                             <section className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
