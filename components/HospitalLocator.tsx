@@ -386,7 +386,7 @@ const HospitalLocator: React.FC<HospitalLocatorProps> = ({ onBack }) => {
         <div className="min-h-screen bg-slate-50 text-slate-900">
             {/* Header */}
             <header className="bg-white border-b border-slate-200 px-6 py-4 shadow-sm sticky top-0 z-40">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => onBack ? onBack() : navigate('/app')}
@@ -395,12 +395,12 @@ const HospitalLocator: React.FC<HospitalLocatorProps> = ({ onBack }) => {
                             <ArrowLeft className="w-5 h-5 text-slate-600" />
                         </button>
                         <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
-                                <Hospital className="w-5 h-5 text-white" />
+                            <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200 shrink-0">
+                                <Hospital className="w-4 h-4 md:w-5 md:h-5 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-lg font-bold text-slate-800">Hospital Locator</h1>
-                                <p className="text-xs text-slate-500">Find nearest hospitals & emergency care</p>
+                                <h1 className="text-base md:text-lg font-bold text-slate-800">Hospital Locator</h1>
+                                <p className="text-[10px] md:text-xs text-slate-500">Find nearest care</p>
                             </div>
                         </div>
                     </div>
@@ -409,16 +409,16 @@ const HospitalLocator: React.FC<HospitalLocatorProps> = ({ onBack }) => {
                         <button
                             onClick={getUserLocation}
                             disabled={loading}
-                            className="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold shadow-md hover:bg-blue-700 disabled:bg-blue-400 transition-all active:scale-95 flex items-center gap-2"
+                            className="flex-1 sm:flex-none px-3 md:px-4 py-2 bg-blue-600 text-white rounded-xl text-xs md:text-sm font-bold shadow-md hover:bg-blue-700 disabled:bg-blue-400 transition-all active:scale-95 flex items-center justify-center gap-2"
                         >
                             {loading ? (
                                 <>
-                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    <Loader2 className="w-3.5 h-3.5 md:w-4 md:h-4 animate-spin" />
                                     Locating...
                                 </>
                             ) : (
                                 <>
-                                    <Locate className="w-4 h-4" />
+                                    <Locate className="w-3.5 h-3.5 md:w-4 md:h-4" />
                                     Auto Detect
                                 </>
                             )}
@@ -426,7 +426,7 @@ const HospitalLocator: React.FC<HospitalLocatorProps> = ({ onBack }) => {
                         <button
                             onClick={searchAtMapCenter}
                             disabled={loading}
-                            className="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 disabled:bg-slate-50 transition-all flex items-center gap-2"
+                            className="flex-1 sm:flex-none px-3 md:px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs md:text-sm font-bold hover:bg-slate-200 disabled:bg-slate-50 transition-all flex items-center justify-center gap-2"
                             title="Search hospitals at current map center"
                         >
                             Search Here
@@ -434,15 +434,15 @@ const HospitalLocator: React.FC<HospitalLocatorProps> = ({ onBack }) => {
                     </div>
                 </div>
 
-                {/* Search Bar */}
-                <div className="flex items-center gap-4">
-                    <div className="relative flex-1 max-w-lg flex gap-2">
+                {/* Search Bar & Filters */}
+                <div className="flex flex-col md:flex-row items-center gap-4">
+                    <div className="relative w-full md:flex-1 max-w-lg flex gap-2">
                         <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-slate-400" />
                             <input
                                 ref={searchInputRef}
                                 type="text"
-                                placeholder="Search any location (e.g., Mumbai, Pune, Jaipur...)"
+                                placeholder="Search location..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 onKeyDown={(e) => {
@@ -451,49 +451,49 @@ const HospitalLocator: React.FC<HospitalLocatorProps> = ({ onBack }) => {
                                         handleSearchSubmit();
                                     }
                                 }}
-                                className="w-full pl-10 pr-4 py-2.5 bg-slate-100 rounded-xl text-sm border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400"
+                                className="w-full pl-9 pr-4 py-2 bg-slate-100 rounded-xl text-xs md:text-sm border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400"
                             />
                         </div>
                         <button
                             onClick={handleSearchSubmit}
                             disabled={loading || !searchQuery.trim()}
-                            className="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 disabled:bg-slate-300 transition-all flex items-center gap-2"
+                            className="px-3 md:px-4 py-2 bg-blue-600 text-white rounded-xl text-xs md:text-sm font-bold hover:bg-blue-700 disabled:bg-slate-300 transition-all flex items-center gap-2"
                         >
-                            <MapPin className="w-4 h-4" />
+                            <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4" />
                             Go
                         </button>
                     </div>
 
                     {/* Filter Tabs */}
-                    <div className="flex bg-slate-100 rounded-xl p-1">
+                    <div className="flex w-full md:w-auto bg-slate-100 rounded-xl p-1 overflow-x-auto no-scrollbar">
                         <button
                             onClick={() => setActiveFilter('all')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${activeFilter === 'all'
+                            className={`flex-1 md:flex-none px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-[10px] md:text-sm font-medium transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeFilter === 'all'
                                 ? 'bg-white text-slate-800 shadow-sm'
                                 : 'text-slate-500 hover:text-slate-700'
                                 }`}
                         >
-                            <Hospital className="w-4 h-4" />
+                            <Hospital className="w-3.5 h-3.5 md:w-4 md:h-4" />
                             All
                         </button>
                         <button
                             onClick={() => setActiveFilter('government')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${activeFilter === 'government'
+                            className={`flex-1 md:flex-none px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-[10px] md:text-sm font-medium transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeFilter === 'government'
                                 ? 'bg-blue-600 text-white shadow-sm'
                                 : 'text-slate-500 hover:text-slate-700'
                                 }`}
                         >
-                            <Landmark className="w-4 h-4" />
+                            <Landmark className="w-3.5 h-3.5 md:w-4 md:h-4" />
                             Govt
                         </button>
                         <button
                             onClick={() => setActiveFilter('private')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${activeFilter === 'private'
+                            className={`flex-1 md:flex-none px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-[10px] md:text-sm font-medium transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeFilter === 'private'
                                 ? 'bg-red-500 text-white shadow-sm'
                                 : 'text-slate-500 hover:text-slate-700'
                                 }`}
                         >
-                            <Building2 className="w-4 h-4" />
+                            <Building2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                             Private
                         </button>
                     </div>
@@ -555,11 +555,11 @@ const HospitalLocator: React.FC<HospitalLocatorProps> = ({ onBack }) => {
             <main className="p-6">
                 <div className="flex flex-col lg:flex-row gap-6 max-w-7xl mx-auto">
                     {/* Map Section */}
-                    <div className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden min-h-[500px] relative">
+                    <div className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden h-[400px] md:h-auto md:min-h-[500px] relative">
                         {/* Click Instruction */}
-                        <div className="absolute top-4 left-4 z-10 bg-blue-600 text-white px-3 py-2 rounded-xl text-sm font-medium shadow-lg flex items-center gap-2">
+                        <div className="absolute top-4 left-4 z-10 bg-blue-600 text-white px-3 py-2 rounded-xl text-[10px] md:text-sm font-medium shadow-lg flex items-center gap-2 max-w-[200px] md:max-w-none">
                             <span className="animate-pulse">👆</span>
-                            Click anywhere on map to set your exact location
+                            Click map to set exact location
                         </div>
                         <GoogleMap
                             mapContainerStyle={mapContainerStyle}

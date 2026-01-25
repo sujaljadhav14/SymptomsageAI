@@ -198,8 +198,8 @@ Be professional, empathetic, and clear in your response.`
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900">
             {/* Header */}
-            <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-40">
-                <div className="flex items-center gap-4">
+            <header className="bg-white border-b border-slate-200 px-4 md:px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-40">
+                <div className="flex items-center gap-3 md:gap-4">
                     <button
                         onClick={() => onBack ? onBack() : navigate('/app')}
                         className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
@@ -207,12 +207,12 @@ Be professional, empathetic, and clear in your response.`
                         <ArrowLeft className="w-5 h-5 text-slate-600" />
                     </button>
                     <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
-                            <Camera className="w-5 h-5 text-white" />
+                        <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200 shrink-0">
+                            <Camera className="w-4 h-4 md:w-5 md:h-5 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-lg font-bold text-slate-800">Medical Image Analysis</h1>
-                            <p className="text-xs text-slate-500">AI-powered symptom detection</p>
+                            <h1 className="text-sm md:text-lg font-bold text-slate-800">Image Analysis</h1>
+                            <p className="text-[10px] md:text-xs text-slate-500">Symptom detection</p>
                         </div>
                     </div>
                 </div>
@@ -220,10 +220,10 @@ Be professional, empathetic, and clear in your response.`
                 {capturedImage && !analysisResult && (
                     <button
                         onClick={reset}
-                        className="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-all active:scale-95 flex items-center gap-2"
+                        className="px-3 md:px-5 py-2 md:py-2.5 bg-slate-100 text-slate-700 rounded-xl text-xs md:text-sm font-bold hover:bg-slate-200 transition-all active:scale-95 flex items-center gap-2"
                     >
-                        <X className="w-4 h-4" />
-                        Clear
+                        <X className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                        <span className="hidden sm:inline">Clear</span>
                     </button>
                 )}
             </header>
@@ -250,9 +250,9 @@ Be professional, empathetic, and clear in your response.`
                     <div className="flex-1 space-y-6">
                         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                             {!capturedImage && !isCameraActive && (
-                                <div className="p-8 text-center space-y-6">
-                                    <div className="w-24 h-24 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full flex items-center justify-center mx-auto">
-                                        <ImageIcon className="w-12 h-12 text-blue-600" />
+                                <div className="p-6 md:p-8 text-center space-y-6">
+                                    <div className="w-16 h-16 md:w-24 md:h-24 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full flex items-center justify-center mx-auto">
+                                        <ImageIcon className="w-8 h-8 md:w-12 md:h-12 text-blue-600" />
                                     </div>
                                     <div>
                                         <h3 className="text-xl font-bold text-slate-800 mb-2">Upload an Image</h3>
@@ -290,16 +290,16 @@ Be professional, empathetic, and clear in your response.`
                                         playsInline
                                         className="w-full h-auto rounded-2xl"
                                     />
-                                    <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-4">
+                                    <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-3 px-4">
                                         <button
                                             onClick={stopCamera}
-                                            className="px-6 py-3 bg-slate-800/80 backdrop-blur-sm text-white rounded-xl font-bold hover:bg-slate-700/80 transition-all"
+                                            className="px-4 md:px-6 py-2.5 md:py-3 bg-slate-800/80 backdrop-blur-sm text-white rounded-xl text-xs md:text-sm font-bold hover:bg-slate-700/80 transition-all flex-1 md:flex-none"
                                         >
                                             Cancel
                                         </button>
                                         <button
                                             onClick={captureImage}
-                                            className="px-8 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg hover:bg-blue-700 transition-all active:scale-95"
+                                            className="px-6 md:px-8 py-2.5 md:py-3 bg-blue-600 text-white rounded-xl text-xs md:text-sm font-bold shadow-lg hover:bg-blue-700 transition-all active:scale-95 flex-1 md:flex-none"
                                         >
                                             📸 Capture
                                         </button>
@@ -412,9 +412,10 @@ Be professional, empathetic, and clear in your response.`
                                             </div>
                                             <button
                                                 onClick={reset}
-                                                className="px-5 py-2.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-xl text-xs font-bold transition-all active:scale-95 shadow-sm border border-blue-100"
+                                                className="px-3 md:px-5 py-2 md:py-2.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded-xl text-[10px] md:text-xs font-bold transition-all active:scale-95 shadow-sm border border-blue-100"
                                             >
-                                                Start New Analysis
+                                                <span className="hidden sm:inline">Start New Analysis</span>
+                                                <span className="sm:hidden">New Analysis</span>
                                             </button>
                                         </div>
 

@@ -3,11 +3,12 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SignInButton, SignedIn, SignedOut } from '@clerk/clerk-react';
 import { Shield, Zap, MessageSquare, ArrowRight, Activity, Bell, Lock, WifiOff } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import ChatSymptomChecker from './assessment/ChatSymptomChecker';
 
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
+    const [menuOpen, setMenuOpen] = React.useState(false);
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -37,7 +38,9 @@ const LandingPage: React.FC = () => {
                             SymptomSage
                         </span>
                     </div>
-                    <div className="flex items-center gap-4">
+
+                    {/* Desktop Navigation */}
+                    <div className="hidden md:flex items-center gap-4">
                         <SignedOut>
                             <SignInButton mode="modal">
                                 <button className="px-5 py-2 text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">
@@ -59,7 +62,58 @@ const LandingPage: React.FC = () => {
                             </button>
                         </SignedIn>
                     </div>
+
+                    {/* Mobile Menu Button */}
+                    <div className="md:hidden flex items-center gap-3">
+                        <SignedIn>
+                            <button
+                                onClick={() => navigate('/app')}
+                                className="p-2 bg-blue-600 text-white rounded-lg shadow-md"
+                            >
+                                <Activity className="w-5 h-5" />
+                            </button>
+                        </SignedIn>
+                        <button
+                            onClick={() => setMenuOpen(!menuOpen)}
+                            className="p-2 text-slate-600"
+                        >
+                            {menuOpen ? <ArrowRight className="w-6 h-6 rotate-180" /> : <Activity className="w-6 h-6" />}
+                        </button>
+                    </div>
                 </div>
+
+                {/* Mobile Menu Dropdown */}
+                <AnimatePresence>
+                    {menuOpen && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="absolute top-full left-0 right-0 bg-white border-b border-slate-200 p-6 md:hidden flex flex-col gap-4 shadow-xl"
+                        >
+                            <SignedOut>
+                                <SignInButton mode="modal">
+                                    <button className="w-full py-3 text-center font-bold text-slate-600 border border-slate-100 rounded-xl">
+                                        Sign In
+                                    </button>
+                                </SignInButton>
+                                <SignInButton mode="modal">
+                                    <button className="w-full py-4 text-center font-bold bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-100">
+                                        Get Started Free
+                                    </button>
+                                </SignInButton>
+                            </SignedOut>
+                            <SignedIn>
+                                <button
+                                    onClick={() => navigate('/app')}
+                                    className="w-full py-4 text-center font-bold bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-100"
+                                >
+                                    Go to Dashboard
+                                </button>
+                            </SignedIn>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </nav>
 
             {/* Hero Section */}

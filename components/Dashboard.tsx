@@ -57,6 +57,7 @@ const Dashboard: React.FC = () => {
     const [isGeneratingReport, setIsGeneratingReport] = useState(false);
     const [sendingEmail, setSendingEmail] = useState(false);
     const [liveTranscription, setLiveTranscription] = useState('');
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // AI-powered features state
@@ -666,15 +667,116 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
     }, [messages, liveTranscription, activeView]);
 
     return (
-        <div className="flex h-screen bg-slate-50 text-slate-900 overflow-hidden font-sans relative">
+        <div className="flex flex-col md:flex-row h-screen bg-slate-50 text-slate-900 overflow-hidden font-sans relative">
+            {/* Mobile Header (Only visible on mobile) */}
+            <header className="md:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between z-30 shrink-0">
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setSidebarOpen(true)}
+                        className="p-2 -ml-2 text-slate-500 hover:bg-slate-50 rounded-lg transition-colors"
+                    >
+                        <Activity className="w-6 h-6 text-blue-600" />
+                    </button>
+                    <h1 className="font-bold text-slate-800">SymptomSage</h1>
+                </div>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setShowNotifications(true)}
+                        className="p-2 text-slate-500 hover:bg-slate-50 rounded-lg relative"
+                    >
+                        <Bell className="w-5 h-5" />
+                        {notifications.filter(n => !n.isRead).length > 0 && (
+                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full" />
+                        )}
+                    </button>
+                    <UserButton afterSignOutUrl="/" />
+                </div>
+            </header>
+
+            {/* Mobile Sidebar Overlay */}
+            <AnimatePresence>
+                {sidebarOpen && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSidebarOpen(false)}
+                            className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden"
+                        />
+                        <motion.aside
+                            initial={{ x: '-100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '-100%' }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            className="fixed top-0 left-0 bottom-0 w-72 bg-white z-50 flex flex-col md:hidden"
+                        >
+                            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-100">
+                                        <Activity className="w-6 h-6 text-white" />
+                                    </div>
+                                    <h1 className="font-bold text-slate-800">SymptomSage</h1>
+                                </div>
+                                <button
+                                    onClick={() => setSidebarOpen(false)}
+                                    className="p-2 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
+                                >
+                                    <ChevronRight className="w-6 h-6 rotate-180" />
+                                </button>
+                            </div>
+                            <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+                                {[
+                                    { id: 'home', icon: Home, label: 'Home' },
+                                    { id: 'consultation', icon: MessageSquare, label: 'Consultation' },
+                                    { id: 'image-analysis', icon: Camera, label: 'Image Analysis' },
+                                    { id: 'hospital-locator', icon: MapPin, label: 'Hospital Locator' },
+                                    { id: 'reports', icon: History, label: 'Reports History' },
+                                    { id: 'assessment', icon: ClipboardList, label: 'Low Network', badge: 'Offline' }
+                                ].map((item) => (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => {
+                                            setActiveView(item.id);
+                                            setSidebarOpen(false);
+                                        }}
+                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeView === item.id
+                                            ? 'bg-blue-600 text-white shadow-md shadow-blue-100'
+                                            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                                            }`}
+                                    >
+                                        <item.icon className={`w-5 h-5 ${activeView === item.id ? 'text-white' : 'text-slate-400 group-hover:text-blue-50 group-hover:text-blue-500 transition-colors'}`} />
+                                        <span className="font-semibold">{item.label}</span>
+                                        {item.badge && (
+                                            <span className={`ml-auto px-1.5 py-0.5 text-[9px] font-bold rounded uppercase ${activeView === item.id ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-700'}`}>
+                                                {item.badge}
+                                            </span>
+                                        )}
+                                    </button>
+                                ))}
+                            </nav>
+                            <div className="p-4 border-t border-slate-100">
+                                <button
+                                    onClick={() => setShowDocs(true)}
+                                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-all"
+                                >
+                                    <BookOpen className="w-5 h-5 text-slate-400" />
+                                    <span className="font-semibold">Documentation</span>
+                                </button>
+                            </div>
+                        </motion.aside>
+                    </>
+                )}
+            </AnimatePresence>
+
             {/* Global AI Pulse Background */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 opacity-30">
                 <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-200/50 rounded-full blur-[120px] animate-pulse" />
                 <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-200/50 rounded-full blur-[120px] animate-pulse [animation-delay:2s]" />
             </div>
 
-            {/* Sidebar Navigation */}
-            <aside className="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0 z-20">
+            {/* Desktop Sidebar Navigation */}
+            <aside className="hidden md:flex w-64 bg-white border-r border-slate-200 flex-col shrink-0 z-20">
                 <div className="p-6 border-b border-slate-100 flex items-center gap-3">
                     <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-100 shrink-0">
                         <Activity className="w-6 h-6 text-white" />
@@ -850,10 +952,10 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                                         transition={{ duration: 0.5 }}
                                         className="text-center space-y-2"
                                     >
-                                        <h2 className="text-3xl font-bold text-slate-800 bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-blue-800 to-slate-900">
+                                        <h2 className="text-2xl md:text-3xl font-bold text-slate-800 bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-blue-800 to-slate-900 px-4">
                                             {aiGreeting || 'Welcome back! 👋'}
                                         </h2>
-                                        <p className="text-slate-500">
+                                        <p className="text-sm md:text-base text-slate-500">
                                             How can SymptomSage help you today?
                                         </p>
                                     </motion.div>
@@ -995,9 +1097,9 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                             exit={{ opacity: 0, x: -10 }}
                             className="flex-1 flex flex-col min-w-0 min-h-0 bg-white shadow-2xl skew-x-[-0.5] origin-top-right z-10"
                         >
-                            <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex items-center justify-between shrink-0 sticky top-0">
-                                <h2 className="text-xl font-bold text-slate-800">Voice Consultation</h2>
-                                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ring-1 ${status === ConnectionStatus.CONNECTED ? 'bg-green-50 text-green-700 ring-green-200' :
+                            <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 md:px-8 py-4 flex items-center justify-between shrink-0 sticky top-0">
+                                <h2 className="text-lg md:text-xl font-bold text-slate-800">Voice Consultation</h2>
+                                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] md:text-xs font-bold ring-1 ${status === ConnectionStatus.CONNECTED ? 'bg-green-50 text-green-700 ring-green-200' :
                                     status === ConnectionStatus.CONNECTING ? 'bg-blue-50 text-blue-700 ring-blue-200' :
                                         status === ConnectionStatus.ERROR ? 'bg-red-50 text-red-700 ring-red-200' :
                                             'bg-slate-100 text-slate-500 ring-slate-200'
@@ -1007,7 +1109,8 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                                             status === ConnectionStatus.ERROR ? 'bg-red-500' :
                                                 'bg-slate-400'
                                         }`} />
-                                    {status}
+                                    <span className="hidden sm:inline">{status}</span>
+                                    <span className="sm:hidden">{status === ConnectionStatus.CONNECTED ? 'Active' : status}</span>
                                 </div>
                             </header>
 
@@ -1015,19 +1118,20 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                                 <section className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
                                     <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
                                         <h3 className="font-semibold text-slate-700 text-sm">Real-time Transcript</h3>
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-2 md:gap-3">
                                             {latestReport && (
                                                 <button
                                                     onClick={() => setShowReport(true)}
-                                                    className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg transition-all active:scale-95"
+                                                    className="flex items-center gap-1.5 text-[10px] md:text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-2 md:px-3 py-1.5 rounded-lg transition-all active:scale-95"
                                                 >
                                                     <Activity className="w-3.5 h-3.5" />
-                                                    Latest Report
+                                                    <span className="hidden sm:inline">Latest Report</span>
+                                                    <span className="sm:hidden">Report</span>
                                                 </button>
                                             )}
                                             <button
                                                 onClick={() => setMessages([])}
-                                                className="text-xs text-slate-400 hover:text-slate-600 transition-colors font-medium"
+                                                className="text-[10px] md:text-xs text-slate-400 hover:text-slate-600 transition-colors font-medium"
                                             >
                                                 Clear Log
                                             </button>
