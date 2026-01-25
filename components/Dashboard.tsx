@@ -248,15 +248,11 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
     }, [user?.firstName]);
 
     const generateHealthTips = useCallback(async () => {
-        // Prevent multiple calls or calls if tips are already loaded
-        if (isLoadingTips || healthTips.length > 0) return;
-
+        if (isLoadingTips) return;
         setIsLoadingTips(true);
 
         try {
             const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY || '';
-            console.log('Fetching health tips...');
-
             if (!apiKey || apiKey === 'PLACEHOLDER_API_KEY') {
                 setHealthTips([
                     "Stay hydrated by drinking at least 8 glasses of water daily",
@@ -282,17 +278,26 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                 })
             });
 
-            if (response.status === 429) {
-                console.warn('Rate limit exceeded for health tips, using fallbacks.');
-                throw new Error('Rate limit exceeded');
-            }
-
             const data = await response.json();
             const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
             const jsonMatch = text.match(/\[[\s\S]*\]/);
             if (jsonMatch) {
                 const tips = JSON.parse(jsonMatch[0]);
                 setHealthTips(tips.slice(0, 3));
+            } else {
+                // No previous reports - show static general health tips
+                const staticTips = [
+                    "Stay hydrated by drinking at least 8 glasses of water daily",
+                    "Take short breaks every hour if working at a desk",
+                    "Aim for 7-9 hours of quality sleep each night",
+                    "Practice mindful breathing for stress relief",
+                    "Regular movement helps boost energy levels",
+                    "Eat a balanced diet rich in fruits and vegetables"
+                ];
+
+                // Randomly pick 3 tips for variety
+                const shuffled = staticTips.sort(() => 0.5 - Math.random());
+                setHealthTips(shuffled.slice(0, 3));
             }
         } catch (e) {
             console.warn('Failed to generate health tips, using fallbacks.');
@@ -304,7 +309,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
         } finally {
             setIsLoadingTips(false);
         }
-    }, [patientContext, isLoadingTips, healthTips.length]);
+    }, [patientContext, isLoadingTips]);
 
     const generateNotifications = useCallback(() => {
         const newNotifications: Notification[] = [];
