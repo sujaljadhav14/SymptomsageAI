@@ -644,8 +644,19 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
     }, [activeView, generateAIGreeting, generateHealthTips, generateNotifications]);
 
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, liveTranscription]);
+        const scrollToBottom = () => {
+            if (messagesEndRef.current) {
+                messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
+        };
+
+        // Scroll immediately
+        scrollToBottom();
+
+        // Also scroll after a short delay to account for rendering/images
+        const timeoutId = setTimeout(scrollToBottom, 50);
+        return () => clearTimeout(timeoutId);
+    }, [messages, liveTranscription, activeView]);
 
     return (
         <div className="flex h-screen bg-slate-50 text-slate-900 overflow-hidden font-sans relative">
@@ -799,7 +810,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                             initial={{ opacity: 0, x: 10 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -10 }}
-                            className="flex-1 flex flex-col min-w-0 bg-transparent z-10"
+                            className="flex-1 flex flex-col min-w-0 min-h-0 bg-transparent z-10"
                         >
                             {/* Home Header */}
                             <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex items-center justify-between shrink-0 sticky top-0 z-10">
@@ -975,7 +986,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                             initial={{ opacity: 0, x: 10 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -10 }}
-                            className="flex-1 flex flex-col min-w-0 bg-white shadow-2xl skew-x-[-0.5] origin-top-right z-10"
+                            className="flex-1 flex flex-col min-w-0 min-h-0 bg-white shadow-2xl skew-x-[-0.5] origin-top-right z-10"
                         >
                             <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex items-center justify-between shrink-0 sticky top-0">
                                 <h2 className="text-xl font-bold text-slate-800">Voice Consultation</h2>
@@ -1245,7 +1256,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                             initial={{ opacity: 0, x: 10 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -10 }}
-                            className="flex-1 flex flex-col min-w-0 bg-white z-10"
+                            className="flex-1 flex flex-col min-w-0 min-h-0 bg-white z-10"
                         >
                             <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-6 flex items-center justify-between shrink-0 sticky top-0">
                                 <div>
