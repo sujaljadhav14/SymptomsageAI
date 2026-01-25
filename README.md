@@ -1,119 +1,99 @@
-# 🏥 SymptomSage AI: The Future of Autonomous Triage
-
-[![Gemini 2.0](https://img.shields.io/badge/AI-Gemini_2.0_Flash-blue.svg?logo=google-gemini)](https://deepmind.google/technologies/gemini/)
-[![React](https://img.shields.io/badge/Frontend-React_19-61DAFB?logo=react)](https://react.dev/)
-[![Docker](https://img.shields.io/badge/Container-Docker-2496ED?logo=docker)](https://www.docker.com/)
-[![GCP](https://img.shields.io/badge/Cloud-Google_Cloud-4285F4?logo=google-cloud)](https://cloud.google.com/)
-
-> **Bridging the gap between patient and provider with real-time, AI-driven clinical triage.**
-
-SymptomSage AI is a next-generation medical assessment platform designed for hackathons and high-scale health-tech requirements. It combines the power of **Google Gemini 2.0 Flash** with real-time voice interaction and offline-first logic to ensure healthcare is accessible to anyone, anywhere—even without a stable internet connection.
+# 🏥 SymptomSage AI
+### *The Intelligent First Responder for Modern Healthcare*
 
 ---
 
-## 🌟 Core Features
+## 🟦 Team & Product
+**Product Name:** SymptomSage AI  
+**The Mission:** An AI-powered, conversational health assistant that provides early medical guidance, helping patients bridge the gap before professional consultation.
 
-### 🎙️ Real-time Voice Consultation
-Experience a natural, voice-guided medical intake. Powered by **Gemini Live**, the system listens, transcribes, and responds in real-time, simulating a human-like preliminary conversation with a clinician.
+### **Core Promise**
+- ⚡ **Fast & Fluid:** Instant responses to critical health inquiries.
+- 🕒 **Always Available:** 24/7 access to medical logic.
+- 📶 **Network Resilient:** Accessible even in low-network or offline conditions.
 
-### 📄 Autonomous Clinical Reports
-At the end of every session, SymptomSage generates a professional-grade clinical report. It extracts:
-- **Severity Score** (Low to Emergency)
-- **Clinical Summary**
-- **Recommended Immediate Precautions**
-- **Suggested Diagnostic Tests**
-- **Clinical Differentiators**
-
-### 📶 Low Network (Offline) Mode
-Critical healthcare shouldn't depend on high-speed internet. Our **Offline Expert System** uses a local rule-based engine to analyze symptoms and provide triage advice when connectivity disappears.
-
-### 🔍 Multimodal Analysis
-- **Image Analysis**: Detect rashes, wounds, or skin irregularities using Gemini's vision capabilities.
-- **Hospital Locator**: Integrated Google Maps API to find the nearest medical facilities instantly when emergency symptoms are detected.
+**Built With:**
+- 🔹 **Google Gemini 2.0 Flash** (Model: `gemini-2.0-flash-exp`)
+- 🔹 **Google Cloud Ecosystem** (Cloud Run, Artifact Registry, Maps API)
 
 ---
 
-## 🛠️ Technology Stack
+## ⚠️ The Core Problem
+Healthcare accessibility is broken by three main barriers:
+1.  **Patient Confusion:** Users don't know the severity of their symptoms or if immediate action is needed.
+2.  **Delayed Access:** Doctors are rarely available for "instant" triage, and clinics can be far.
+3.  **Inflexible Apps:** Most existing health apps are slow, text-heavy, and fail without a strong internet connection.
 
-| Layer | Technology |
-|---|---|
-| **AI / Intelligence** | Gemini 2.0 Flash, Google GenAI SDK |
-| **Real-time Voice** | WebRTC, Simli AI Avatar integration |
-| **Frontend** | React 19, Vite, Tailwind CSS, Framer Motion |
-| **Backend** | Node.js (Express), Nodemailer |
-| **Authentication** | Clerk Auth |
-| **Database** | Supabase |
-| **Cloud / DevOps** | GCP (Cloud Run, Cloud Build), Docker, Nginx |
+**The Challenge:** Create a fast, human-like, explainable medical interaction that works in real-world, unpredictable conditions.
 
 ---
 
-## 🏗️ System Architecture
+## 🚀 Innovation: The "Google Solution"
 
-```mermaid
-graph TD
-    User((User)) -->|Voice/Text| Frontend[Vite/React Frontend]
-    Frontend -->|WebRTC| Gemini[Gemini Live API]
-    Frontend -->|REST| Backend[Express Email Server]
-    Frontend -->|Auth| Clerk[Clerk]
-    Frontend -->|Storage| Supabase[(Supabase)]
-    Backend -->|SMTP| MailServer[Gmail/SMTP]
-    
-    subgraph Containerized Services
-        Frontend
-        Backend
-    end
-```
+### 🎙️ 1. Conversational AI (Slide 03)
+We've replaced static forms with a **Real-Time Doctor-Patient Dialogue**.
+- **The Tech:** Gemini Live API & Google AI Studio.
+- **Outcome:** The AI understands symptoms via voice/text, generates logical follow-up questions, and maintains a natural consultation flow.
 
----
+### 🧠 2. Severity & Medical Reasoning (Slide 04)
+Trust is built on explanation.
+- **The Tech:** Gemini Reasoning Engine.
+- **Outcome:** SymptomSage assigns risk scores (**Emergency | High | Medium | Low**) and—most importantly—**explains why**, providing traceable logic for its guidance.
 
-## 🚀 Getting Started
+### 📋 3. Smart Report Generation (Slide 05)
+Actionable data is better than general advice.
+- **The Tech:** Gemini & Cloud Run.
+- **Outcome:** Converts voice conversations into structured clinical reports, including recommended tests and immediate precautions.
 
-### 1. Local Development
-```bash
-# Clone the repo
-git clone https://github.com/mohit45v/Symptomsage-ai.git
+### 📍 4. Location-Based Guidance (Slide 06)
+Closing the loop between AI and the real world.
+- **The Tech:** Google Maps API & GCP Infrastructure.
+- **Outcome:** When high-risk symptoms are detected, the system immediately fetches nearby hospitals, doctors, and labs.
 
-# Install dependencies
-npm install
-
-# Set up environment variables
-cp .env.local.example .env.local # Update your keys here
-
-# Run services
-npm run dev    # Start Frontend
-npm run server # Start Email Backend
-```
-
-### 2. Docker & Orchestration
-Run the entire stack (Frontend + Backend) locally with Docker:
-```bash
-docker-compose up --build
-```
+### 📡 5. Low Network & Offline Support (Slide 07)
+Healthcare for the "Next Billion" users.
+- **The Tech:** Optimized prompt strategy & Offline Expert System.
+- **Outcome:** Works during travel, in rural areas, or during emergencies where data is unstable.
 
 ---
 
-## ☁️ GCP Deployment (Step-by-Step)
+## 🏗️ Deployment & Cloud Architecture
+We use a **Fully Serverless** architecture to ensure zero maintenance and infinite scalability.
 
-SymptomSage is optimized for **Google Cloud Run**. Follow these three steps to go live:
-
-1.  **Build & Push**:
-    ```bash
-    ./deploy_gcp.sh
-    ```
-2.  **Verify**: Access the provided URL from Cloud Run logs.
-3.  **Monitor**: Use Google Cloud Logging to track clinical interaction health.
+- **Google Cloud Run:** Hosts our containerized Backend and Frontend services.
+- **Cloud Build:** Automates our CI/CD pipeline from GitHub to Production.
+- **GCP Credits:** Powerfully utilized to host high-performance APIs and AI calls efficiently.
 
 ---
 
-## 🚨 Medical Disclaimer
-**SymptomSage AI is for informational purposes only.** It is not a medical diagnostic tool and does not constitute professional medical advice, diagnosis, or treatment. **In case of an emergency, please contact your local emergency services (e.g., 911) immediately.**
+## 🔮 Advanced Capabilities
+- 👁️ **Multimodal Analysis:** Understands medical images (rashes, wounds) alongside text history.
+- 📈 **Long-Term Memory:** Learns from previous health reports to make future conversations more personalized and accurate.
+- 🎯 **UI Rendering:** Uses structured JSON output from Gemini to render a clean, professional dashboard.
 
 ---
 
-## 📄 License
-This project is developed for hackathon purposes. All rights reserved.
+## 🏆 USP: Why SymptomSage?
+**"A Google-powered, real-time conversational health assistant that guides users to the right medical action — fast, explainable, and reliable even with low internet."**
+
+---
+
+## 🛠️ Tech Highlights
+- **AI Engine:** Google Gemini 2.0 Flash (Exp)
+- **Voice System:** WebRTC / Live Audio Streaming
+- **Maps:** Google Maps Places SDK
+- **Backend:** Node.js Express on Cloud Run
+- **Frontend:** React 19 / Vite / Tailwind
+- **Infrastructure:** Docker / GCP Cloud Build
+
+---
+
+## 📂 Project Structure
+- `/components`: UI Layer (Dashboard, Voice Triage, Image Analysis)
+- `/server`: Node.js Backend for Email & GCP integration
+- `/utils`: AI orchestration and Offline Engine logic
+- `/Dockerfile`: Consolidated multi-stage container build
 
 <div align="center">
-  <br/>
-  Made with ❤️ by the SymptomSage Team
+  <sub>Made for the Google AI Hackathon 2024</sub>
 </div>
