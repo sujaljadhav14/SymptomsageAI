@@ -312,20 +312,26 @@ Eyes wide   gets volume 0-1
 
 > Update this section as tasks are completed. Mark with ✅ done, 🔄 in progress, ❌ not started, ⚠️ blocked.
 
+**Active Branch:** `feature/anime-character-lipsync`
+**Last Commit:** `38c8a55` — feat: Add anime character with lip-sync to consultation view
+**Build Status:** ✅ PASSING (Vite build, 2242 modules, exit code 0)
+**TypeScript:** ✅ No errors (`tsc --noEmit` passes clean)
+
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 1 | Write `AGENT.md` (this file) | ✅ DONE | — |
-| 2 | Create `useAudioAnalyser.ts` hook | ❌ NOT STARTED | — |
-| 3 | Create `CharacterSVG.tsx` (SVG drawing) | ❌ NOT STARTED | — |
-| 4 | Create `MouthMorpher.tsx` | ❌ NOT STARTED | — |
-| 5 | Create `character.css` animations | ❌ NOT STARTED | — |
-| 6 | Create `AnimeCharacter/index.tsx` | ❌ NOT STARTED | — |
-| 7 | Modify `Dashboard.tsx` — add characterState | ❌ NOT STARTED | — |
-| 8 | Modify `Dashboard.tsx` — layout split (40/60) | ❌ NOT STARTED | — |
-| 9 | Modify `Dashboard.tsx` — render `<AnimeCharacter>` | ❌ NOT STARTED | — |
-| 10 | Test lip-sync with real Gemini audio | ❌ NOT STARTED | — |
-| 11 | Polish animations & visual design | ❌ NOT STARTED | — |
-| 12 | Update `PROJECT_FEATURES.md` with new feature | ❌ NOT STARTED | — |
+| 2 | Create `useAudioAnalyser.ts` hook | ✅ DONE | Also exports `getOrCreateAnalyser` util |
+| 3 | Create `CharacterSVG.tsx` (SVG drawing) | ✅ DONE | Full anime chibi character with all parts |
+| 4 | Create `MouthMorpher.tsx` | ✅ DONE | 4-state mouth: closed/small/medium/wide |
+| 5 | Create `character.css` animations | ✅ DONE | idle-float, blink, listening-lean, aura-pulse, thinking-tilt |
+| 6 | Create `AnimeCharacter/index.tsx` | ✅ DONE | AnalyserNode created here, connected on `speaking` state |
+| 7 | Modify `Dashboard.tsx` — add characterState | ✅ DONE | Added `useMemo` computing idle/listening/speaking/thinking |
+| 8 | Modify `Dashboard.tsx` — layout split | ✅ DONE | Added `<aside>` panel (w-56) left of transcript |
+| 9 | Modify `Dashboard.tsx` — render `<AnimeCharacter>` | ✅ DONE | Passes state + outputAudioContextRef |
+| 10 | Test lip-sync with real Gemini audio | ❌ NOT STARTED | Needs live browser test with real API key |
+| 11 | Polish animations & visual design | ❌ NOT STARTED | Optional refinements after live testing |
+| 12 | Update `PROJECT_FEATURES.md` with new feature | ❌ NOT STARTED | Add section 5.11 for anime character |
+
 
 ---
 
