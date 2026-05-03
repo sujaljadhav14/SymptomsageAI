@@ -1,269 +1,243 @@
 /**
  * RobotCharacter3D.tsx
  *
- * A 3D animated robot character powered by Three.js + React Three Fiber.
- * Uses the "RobotExpressive" model from Three.js public CDN — a fully rigged
- * 3D character with morph-target facial expressions and named animations.
- *
- * Character states → robot behaviour:
- *   idle      → "Idle" animation  + neutral face
- *   listening → "Idle" animation  + wide-eyed Surprised expression
- *   thinking  → "Idle" animation  + Sleep (eyes closed) expression + head tilt
- *   speaking  → "Wave" animation  + Happy expression + mouth open proportional to volume
+ * 3D animated robot using Three.js RobotExpressive model.
+ * KEY FIX: Canvas uses absolute inset-0 to fill its parent,
+ * with explicit width/height 100% so Three.js gets pixel dimensions.
  */
 
 import React, { useRef, useEffect, Suspense, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { useGLTF, useAnimations, OrbitControls, Environment, Preload } from '@react-three/drei';
+import { useGLTF, useAnimations, Environment, Preload } from '@react-three/drei';
 import * as THREE from 'three';
 import type { CharacterState } from './AnimeCharacter';
 
-// ─── Publicly hosted Three.js example model ─────────────────────────────────
 const MODEL_URL = 'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb';
+const FADE = 0.35;
 
-// How fast to crossfade between animations (seconds)
-const FADE_DURATION = 0.4;
-
-// Morph target names baked into the RobotExpressive model
 const EXPRESSIONS = {
   Angry: 0, Confused: 1, Crazy: 2, Default: 3,
   Happy: 4, Sad: 5, Sleep: 6, Surprised: 7,
 } as const;
-
 type ExpressionName = keyof typeof EXPRESSIONS;
 
-// ─── Robot mesh inside the scene ─────────────────────────────────────────────
-interface RobotModelProps {
-  state: CharacterState;
-  volume: number;     // 0-1 for mouth open during speaking
-}
-
-function RobotModel({ state, volume }: RobotModelProps) {
+// ── Robot mesh ──────────────────────────────────────────────────────────────
+function RobotModel({ state, volume }: { state: CharacterState; volume: number }) {
   const groupRef = useRef<THREE.Group>(null!);
   const { scene, animations } = useGLTF(MODEL_URL);
-  const { actions, mixer } = useAnimations(animations, groupRef);
+  const { actions } = useAnimations(animations, groupRef);
+  const curActionRef = useRef<THREE.AnimationAction | null>(null);
+  const faceMeshRef = useRef<THREE.SkinnedMesh | null>(null);
 
-  // Track what's currently playing so we only fade when state changes
-  const currentActionRef = useRef<THREE.AnimationAction | null>(null);
-  const expressionMeshRef = useRef<THREE.SkinnedMesh | null>(null);
-
-  // Find the mesh that has morph targets (facial expressions)
+  // Find the mesh with expression morph targets
   useEffect(() => {
     scene.traverse((obj) => {
-      if (
-        obj instanceof THREE.SkinnedMesh &&
-        obj.morphTargetDictionary &&
-        'Surprised' in obj.morphTargetDictionary
-      ) {
-        expressionMeshRef.current = obj;
+      const mesh = obj as THREE.SkinnedMesh;
+      if (mesh.isMesh && mesh.morphTargetDictionary && 'Surprised' in mesh.morphTargetDictionary) {
+        faceMeshRef.current = mesh;
       }
     });
   }, [scene]);
 
-  // ── Smooth morph-target setter ──────────────────────────────────────────────
   const setExpression = (name: ExpressionName, strength = 1) => {
-    const mesh = expressionMeshRef.current;
-    if (!mesh?.morphTargetInfluences || !mesh.morphTargetDictionary) return;
-    // Reset all expression morphs first
-    Object.values(EXPRESSIONS).forEach((idx) => {
-      mesh.morphTargetInfluences![idx] = 0;
-    });
-    const idx = EXPRESSIONS[name];
-    if (idx !== undefined) mesh.morphTargetInfluences[idx] = strength;
+    const m = faceMeshRef.current;
+    if (!m?.morphTargetInfluences) return;
+    Object.values(EXPRESSIONS).forEach(i => { m.morphTargetInfluences![i] = 0; });
+    m.morphTargetInfluences[EXPRESSIONS[name]] = strength;
   };
 
-  // ── Play animation by name with crossfade ──────────────────────────────────
-  const playAnimation = (name: string) => {
+  const play = (name: string) => {
     const next = actions[name];
-    if (!next || currentActionRef.current === next) return;
-    if (currentActionRef.current) {
-      currentActionRef.current.fadeOut(FADE_DURATION);
-    }
-    next.reset().setLoop(
-      name === 'Wave' || name === 'Jump' ? THREE.LoopRepeat : THREE.LoopRepeat,
-      Infinity
-    ).fadeIn(FADE_DURATION).play();
-    currentActionRef.current = next;
+    if (!next || curActionRef.current === next) return;
+    curActionRef.current?.fadeOut(FADE);
+    next.reset().setLoop(THREE.LoopRepeat, Infinity).fadeIn(FADE).play();
+    curActionRef.current = next;
   };
 
-  // ── State → animation + expression ────────────────────────────────────────
   useEffect(() => {
     switch (state) {
       case 'idle':
-        playAnimation('Idle');
+        play('Idle');
         setExpression('Default');
         break;
       case 'listening':
-        playAnimation('Idle');
+        play('Idle');
         setExpression('Surprised', 0.85);
         break;
       case 'thinking':
-        playAnimation('Idle');
-        setExpression('Confused', 0.9);
+        play('Idle');
+        setExpression('Sleep', 0.7); // eyes closed
         break;
       case 'speaking':
-        playAnimation('Wave');
-        setExpression('Happy', 0.8);
+        play('Wave');
+        setExpression('Happy', 0.9);
         break;
     }
   }, [state, actions]);
 
-  // ── Per-frame: mouth open proportional to audio volume ────────────────────
+  // Lerp mouth open with volume
   useFrame(() => {
-    const mesh = expressionMeshRef.current;
-    if (!mesh?.morphTargetInfluences || !mesh.morphTargetDictionary) return;
-
-    if (state === 'speaking') {
-      // Look for a mouth-open morph target — some models have one
-      const mouthIdx = mesh.morphTargetDictionary['mouthOpen'] ??
-                       mesh.morphTargetDictionary['MouthOpen'] ??
-                       mesh.morphTargetDictionary['mouth_open'];
-      if (mouthIdx !== undefined) {
-        const current = mesh.morphTargetInfluences![mouthIdx] ?? 0;
-        const target = volume * 0.9;
-        // Lerp for smooth movement
-        mesh.morphTargetInfluences![mouthIdx] = THREE.MathUtils.lerp(current, target, 0.25);
-      }
+    const m = faceMeshRef.current;
+    if (!m?.morphTargetInfluences || !m.morphTargetDictionary) return;
+    if (state !== 'speaking') return;
+    // Some builds of the model expose a "mouthOpen" morph
+    const idx = m.morphTargetDictionary['mouthOpen'] ??
+                m.morphTargetDictionary['MouthOpen'] ??
+                m.morphTargetDictionary['mouth_open'];
+    if (idx !== undefined) {
+      const cur = m.morphTargetInfluences[idx] ?? 0;
+      m.morphTargetInfluences[idx] = THREE.MathUtils.lerp(cur, volume * 0.85, 0.3);
     }
   });
 
-  return (
-    <primitive
-      ref={groupRef}
-      object={scene}
-      scale={1.3}
-      position={[0, -1.15, 0]}
-      rotation={[0, 0.1, 0]}
-    />
-  );
+  return <primitive ref={groupRef} object={scene} scale={1.25} position={[0, -1.1, 0]} rotation={[0, 0.08, 0]} />;
 }
 
-// ─── Camera auto-orbits gently in idle/thinking ───────────────────────────
-function AutoCamera({ state }: { state: CharacterState }) {
+// ── Gentle camera drift ─────────────────────────────────────────────────────
+function CameraDrift({ state }: { state: CharacterState }) {
   const { camera } = useThree();
-  const tRef = useRef(0);
-
-  useFrame((_, delta) => {
-    tRef.current += delta;
+  const t = useRef(0);
+  useFrame((_, dt) => {
+    t.current += dt;
     if (state === 'idle' || state === 'thinking') {
-      // Gentle horizontal drift
-      camera.position.x = Math.sin(tRef.current * 0.2) * 0.3;
-      camera.lookAt(0, 0.2, 0);
+      camera.position.x = THREE.MathUtils.lerp(camera.position.x, Math.sin(t.current * 0.18) * 0.28, 0.03);
     } else {
-      // Snap to front for active states
-      camera.position.x = THREE.MathUtils.lerp(camera.position.x, 0, 0.05);
-      camera.lookAt(0, 0.2, 0);
+      camera.position.x = THREE.MathUtils.lerp(camera.position.x, 0, 0.06);
     }
+    camera.lookAt(0, 0.15, 0);
   });
-
   return null;
 }
 
-// ─── Loading fallback ────────────────────────────────────────────────────────
-function LoadingRobot() {
+// ── Spinning loader while model downloads ───────────────────────────────────
+function Spinner() {
+  const meshRef = useRef<THREE.Mesh>(null!);
+  useFrame((_, dt) => {
+    meshRef.current.rotation.y += dt * 2;
+    meshRef.current.rotation.x += dt * 0.5;
+  });
   return (
-    <mesh>
-      <sphereGeometry args={[0.3, 16, 16]} />
+    <mesh ref={meshRef}>
+      <octahedronGeometry args={[0.35, 0]} />
       <meshStandardMaterial color="#6366f1" wireframe />
     </mesh>
   );
 }
 
-// ─── Status badge that overlays on the canvas ────────────────────────────────
-const STATE_CONFIG: Record<CharacterState, { label: string; color: string; emoji: string }> = {
+// ── State overlay config ─────────────────────────────────────────────────────
+const CFG: Record<CharacterState, { label: string; color: string; emoji: string }> = {
   idle:      { label: 'Standby',   color: '#94a3b8', emoji: '😴' },
   listening: { label: 'Listening', color: '#60a5fa', emoji: '👂' },
   thinking:  { label: 'Thinking',  color: '#a78bfa', emoji: '🤔' },
   speaking:  { label: 'Speaking',  color: '#34d399', emoji: '🗣️' },
 };
 
-// ─── Exported 3D character panel ─────────────────────────────────────────────
-interface RobotCharacter3DProps {
+// ── Main export ──────────────────────────────────────────────────────────────
+export interface RobotCharacter3DProps {
   state: CharacterState;
   volume?: number;
 }
 
 const RobotCharacter3D: React.FC<RobotCharacter3DProps> = ({ state, volume = 0 }) => {
-  const cfg = STATE_CONFIG[state];
+  const cfg = CFG[state];
+  const [loaded, setLoaded] = useState(false);
+
+  const stateColor =
+    state === 'listening' ? '#60a5fa' :
+    state === 'thinking'  ? '#a78bfa' :
+    state === 'speaking'  ? '#34d399' : '#ffffff';
 
   return (
-    <div className="relative w-full h-full select-none">
-      {/* 3D Canvas */}
+    // IMPORTANT: This div must fill 100% of its absolutely-positioned parent
+    <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
+
+      {/* Three.js Canvas — explicit width/height 100% is REQUIRED */}
       <Canvas
-        camera={{ position: [0, 0.5, 2.8], fov: 45 }}
+        camera={{ position: [0, 0.45, 2.8], fov: 44 }}
         shadows
-        style={{ background: 'transparent' }}
         gl={{ antialias: true, alpha: true }}
+        style={{ width: '100%', height: '100%', display: 'block', background: 'transparent' }}
+        onCreated={() => setLoaded(true)}
       >
-        {/* Lighting */}
-        <ambientLight intensity={0.6} />
-        <directionalLight
-          position={[3, 5, 5]}
-          intensity={1.2}
-          castShadow
-          shadow-mapSize={[1024, 1024]}
-        />
-        <directionalLight position={[-3, 3, -2]} intensity={0.4} color="#818cf8" />
-        <pointLight position={[0, 3, 0]} intensity={0.5} color={
-          state === 'listening' ? '#60a5fa' :
-          state === 'thinking'  ? '#a78bfa' :
-          state === 'speaking'  ? '#34d399' : '#ffffff'
-        } distance={5} />
+        {/* Scene lighting */}
+        <ambientLight intensity={0.55} />
+        <directionalLight position={[3, 5, 4]} intensity={1.1} castShadow shadow-mapSize={[512, 512]} />
+        <directionalLight position={[-2, 2, -2]} intensity={0.35} color="#818cf8" />
+        <pointLight position={[0, 2.5, 1]} intensity={0.6} color={stateColor} distance={6} decay={2} />
 
-        {/* Auto-drifting camera */}
-        <AutoCamera state={state} />
+        {/* Camera gentle drift */}
+        <CameraDrift state={state} />
 
-        {/* Environment map for reflections */}
+        {/* HDR environment for nice reflections */}
         <Environment preset="city" />
 
-        {/* Ground shadow */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.15, 0]} receiveShadow>
+        {/* Shadow plane */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.1, 0]} receiveShadow>
           <planeGeometry args={[4, 4]} />
-          <shadowMaterial opacity={0.2} />
+          <shadowMaterial opacity={0.15} />
         </mesh>
 
-        {/* The robot */}
-        <Suspense fallback={<LoadingRobot />}>
+        {/* Robot — suspense shows spinner until loaded */}
+        <Suspense fallback={<Spinner />}>
           <RobotModel state={state} volume={volume} />
         </Suspense>
 
         <Preload all />
       </Canvas>
 
-      {/* State badge overlay */}
-      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md bg-black/30 border border-white/10 pointer-events-none">
-        <span className="text-sm">{cfg.emoji}</span>
-        <span
-          className="text-[10px] font-bold uppercase tracking-widest"
-          style={{ color: cfg.color }}
-        >
+      {/* State badge — on top of canvas */}
+      <div style={{
+        position: 'absolute',
+        bottom: 12,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+        padding: '5px 12px',
+        borderRadius: 999,
+        background: 'rgba(0,0,0,0.45)',
+        backdropFilter: 'blur(8px)',
+        border: '1px solid rgba(255,255,255,0.1)',
+        pointerEvents: 'none',
+        whiteSpace: 'nowrap',
+      }}>
+        <span style={{ fontSize: 13 }}>{cfg.emoji}</span>
+        <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2, color: cfg.color }}>
           {cfg.label}
         </span>
         {state !== 'idle' && (
-          <span
-            className="w-1.5 h-1.5 rounded-full animate-pulse"
-            style={{ backgroundColor: cfg.color }}
-          />
+          <span style={{
+            width: 6, height: 6, borderRadius: '50%',
+            backgroundColor: cfg.color,
+            animation: 'pulse 1s ease-in-out infinite',
+          }} />
         )}
       </div>
 
-      {/* Aura glow ring that pulses with state */}
-      <div
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-4 rounded-full blur-xl pointer-events-none transition-all duration-700"
-        style={{
-          backgroundColor:
-            state === 'listening' ? 'rgba(96,165,250,0.4)' :
-            state === 'thinking'  ? 'rgba(167,139,250,0.4)' :
-            state === 'speaking'  ? 'rgba(52,211,153,0.4)' :
-            'rgba(148,163,184,0.15)',
-          transform: `translateX(-50%) scaleX(${state !== 'idle' ? 1.5 : 1})`,
-        }}
-      />
+      {/* Aura glow at bottom */}
+      <div style={{
+        position: 'absolute',
+        bottom: 0,
+        left: '50%',
+        transform: `translateX(-50%) scaleX(${state !== 'idle' ? 1.8 : 1})`,
+        width: 80,
+        height: 16,
+        borderRadius: '50%',
+        filter: 'blur(12px)',
+        background:
+          state === 'listening' ? 'rgba(96,165,250,0.45)' :
+          state === 'thinking'  ? 'rgba(167,139,250,0.45)' :
+          state === 'speaking'  ? 'rgba(52,211,153,0.45)' :
+          'rgba(148,163,184,0.1)',
+        transition: 'all 0.6s ease',
+        pointerEvents: 'none',
+      }} />
     </div>
   );
 };
 
-// Preload the model for faster first display
+// Kick off model download immediately on import
 useGLTF.preload(MODEL_URL);
 
 export default RobotCharacter3D;

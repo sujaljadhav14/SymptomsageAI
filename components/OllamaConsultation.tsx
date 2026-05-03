@@ -395,19 +395,19 @@ const OllamaConsultation: React.FC<OllamaConsultationProps> = ({ onEndSession })
     <div className="flex h-full bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 rounded-2xl overflow-hidden">
 
       {/* ── LEFT: 3D Character ─────────────────────────────────────────────── */}
-      <div className="relative w-64 flex-shrink-0 border-r border-white/[0.06] flex flex-col">
+      <div className="relative w-64 flex-shrink-0 border-r border-white/[0.06] flex flex-col min-h-0">
         {/* Gradient backdrop for character */}
-        <div className="absolute inset-0 bg-gradient-to-b from-indigo-900/20 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-indigo-900/20 to-transparent pointer-events-none z-0" />
 
-        {/* 3D Robot */}
-        <div className="flex-1 relative">
+        {/* 3D Robot — must be absolutely positioned to give canvas pixel height */}
+        <div className="absolute inset-0 bottom-[56px]" style={{ minHeight: 0 }}>
           <RobotCharacter3D state={characterState} volume={lipVolume} />
         </div>
 
-        {/* Character info */}
-        <div className="p-4 border-t border-white/[0.06] bg-black/20 backdrop-blur-sm">
+        {/* Character info — pinned to bottom */}
+        <div className="absolute bottom-0 left-0 right-0 h-14 p-3 border-t border-white/[0.06] bg-black/40 backdrop-blur-sm z-10">
           <p className="text-[10px] text-slate-400 text-center font-medium">Sage AI • Llama 3</p>
-          <div className="flex justify-center mt-2 gap-1">
+          <div className="flex justify-center mt-1.5 gap-1">
             {(['idle', 'listening', 'thinking', 'speaking'] as CharacterState[]).map(s => (
               <div
                 key={s}
