@@ -90,21 +90,25 @@ function RobotModel({ state, volume }: { state: CharacterState; volume: number }
     }
   });
 
-  return <primitive ref={groupRef} object={scene} scale={1.25} position={[0, -1.1, 0]} rotation={[0, 0.08, 0]} />;
+  return <primitive ref={groupRef} object={scene} scale={0.9} position={[0, -1.05, 0]} rotation={[0, 0.08, 0]} />;
 }
 
 // ── Gentle camera drift ─────────────────────────────────────────────────────
+// Robot center is at approximately y=0 (feet at -1.05, head at +1.05)
+// Camera must look at the mid-body point (~y=0.5) to frame the full robot
+const LOOK_AT_Y = 0.5;
+
 function CameraDrift({ state }: { state: CharacterState }) {
   const { camera } = useThree();
   const t = useRef(0);
   useFrame((_, dt) => {
     t.current += dt;
     if (state === 'idle' || state === 'thinking') {
-      camera.position.x = THREE.MathUtils.lerp(camera.position.x, Math.sin(t.current * 0.18) * 0.28, 0.03);
+      camera.position.x = THREE.MathUtils.lerp(camera.position.x, Math.sin(t.current * 0.18) * 0.4, 0.03);
     } else {
       camera.position.x = THREE.MathUtils.lerp(camera.position.x, 0, 0.06);
     }
-    camera.lookAt(0, 0.15, 0);
+    camera.lookAt(camera.position.x * 0.1, LOOK_AT_Y, 0);
   });
   return null;
 }
@@ -153,7 +157,7 @@ const RobotCharacter3D: React.FC<RobotCharacter3DProps> = ({ state, volume = 0 }
 
       {/* Three.js Canvas — explicit width/height 100% is REQUIRED */}
       <Canvas
-        camera={{ position: [0, 0.45, 2.8], fov: 44 }}
+        camera={{ position: [0, 0.8, 5.5], fov: 55 }}
         shadows
         gl={{ antialias: true, alpha: true }}
         style={{ width: '100%', height: '100%', display: 'block', background: 'transparent' }}
