@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { GoogleGenAI, Modality, LiveServerMessage } from '@google/genai';
 import { decode, decodeAudioData, createBlob } from '../utils/audioHelpers';
 import LiveVisualizer from './LiveVisualizer';
+import AnimeCharacter, { type CharacterState } from './AnimeCharacter';
 import NotificationPanel from './NotificationPanel';
 import OfflineAssessmentView from '../views/OfflineAssessmentView';
 import NearbyFacilitiesCardSimple from './NearbyFacilitiesCardSimple';
@@ -542,7 +543,13 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                             const audioBuffer = await decodeAudioData(decode(audioData), ctx, 24000, 1);
                             const source = ctx.createBufferSource();
                             source.buffer = audioBuffer;
-                            source.connect(ctx.destination);
+                            // Route through AnalyserNode if available (for lip-sync)
+                            const analyser = (ctx as any).__sageAnalyser as AnalyserNode | undefined;
+                            if (analyser) {
+                                source.connect(analyser);
+                            } else {
+                                source.connect(ctx.destination);
+                            }
 
                             source.onended = () => {
                                 sourcesRef.current.delete(source);
@@ -659,12 +666,15 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
         };
 
         // Scroll immediately
-        scrollToBottom();
+}, [messages, liveTranscription, activeView]);
 
-        // Also scroll after a short delay to account for rendering/images
-        const timeoutId = setTimeout(scrollToBottom, 50);
-        return () => clearTimeout(timeoutId);
-    }, [messages, liveTranscription, activeView]);
+    // Derive the anime character state from voice session state
+    const characterState = useMemo<CharacterState>(() => {
+        if (isAssistantSpeaking) return 'speaking';
+        if (isUserSpeaking) return 'listening';
+        if (status === ConnectionStatus.CONNECTING) return 'thinking';
+        return 'idle';
+    }, [isAssistantSpeaking, isUserSpeaking, status]);
 
     return (
         <div className="flex flex-col md:flex-row h-screen bg-slate-50 text-slate-900 overflow-hidden font-sans relative">
@@ -1115,6 +1125,19 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                             </header>
 
                             <main className="flex-1 flex flex-col md:flex-row p-6 gap-6 overflow-hidden">
+                                {/* ═══ ANIME CHARACTER PANEL ═══ */}
+                                <aside className="hidden md:flex w-56 flex-col items-center justify-center shrink-0 gap-4 py-4">
+                                    <AnimeCharacter
+                                        state={characterState}
+                                        outputAudioContextRef={outputAudioContextRef}
+                                    />
+                                    {/* Connection hint when idle and disconnected */}
+                                    {status === ConnectionStatus.DISCONNECTED && (
+                                        <p className="text-center text-[10px] text-slate-400 font-medium leading-relaxed px-2">
+                                            Start a consultation to activate Sage-chan
+                                        </p>
+                                    )}
+                                </aside>
                                 <section className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
                                     <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
                                         <h3 className="font-semibold text-slate-700 text-sm">Real-time Transcript</h3>

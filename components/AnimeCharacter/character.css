@@ -1,0 +1,217 @@
+/* ============================================================
+   character.css — Anime Character Keyframe Animations
+   All animations for Sage-chan's idle, listening, speaking,
+   and thinking states.
+   ============================================================ */
+
+/* ── IDLE: Gentle floating bob ── */
+@keyframes idle-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  30%       { transform: translateY(-7px) rotate(0.5deg); }
+  70%       { transform: translateY(-4px) rotate(-0.5deg); }
+}
+
+/* ── IDLE: Natural eye blink ── */
+@keyframes blink {
+  0%, 88%, 100% { transform: scaleY(1); }
+  92%           { transform: scaleY(0.06); }
+  96%           { transform: scaleY(1); }
+}
+
+/* ── IDLE: Subtle body sway ── */
+@keyframes idle-sway {
+  0%, 100% { transform: rotate(0deg); }
+  33%      { transform: rotate(1.5deg); }
+  66%      { transform: rotate(-1.2deg); }
+}
+
+/* ── LISTENING: Lean forward attention ── */
+@keyframes listening-lean {
+  0%, 100% { transform: translateY(-2px) rotate(-2deg); }
+  50%      { transform: translateY(-6px) rotate(-4deg); }
+}
+
+/* ── LISTENING: Eyes widen (handled via SVG attr animation) ── */
+@keyframes eye-widen {
+  0%, 100% { transform: scaleY(1); }
+  50%      { transform: scaleY(1.15); }
+}
+
+/* ── SPEAKING: Aura pulse glow ── */
+@keyframes aura-pulse {
+  0%, 100% { opacity: 0.25; transform: scale(1); }
+  50%      { opacity: 0.55; transform: scale(1.06); }
+}
+
+/* ── THINKING: Slow head tilt + eyes closed ── */
+@keyframes thinking-tilt {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(-6deg); }
+}
+
+/* ── THINKING: Thought bubble float ── */
+@keyframes thought-float {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.8; }
+  50%      { transform: translateY(-5px) scale(1.05); opacity: 1; }
+}
+
+/* ── GLOW HALO: Radial gradient ring behind character ── */
+@keyframes halo-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── CONNECTED SPARKLE ── */
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0.5); }
+  50%      { opacity: 1; transform: scale(1.2); }
+}
+
+/* ── Hair highlight shimmer ── */
+@keyframes hair-shimmer {
+  0%, 100% { opacity: 0.3; }
+  50%      { opacity: 0.7; }
+}
+
+/* ============================================================
+   STATE CLASSES
+   ============================================================ */
+
+.sage-character {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: filter 0.4s ease;
+}
+
+/* Idle state */
+.sage-character.state-idle .sage-body-group {
+  animation: idle-float 4s ease-in-out infinite;
+}
+.sage-character.state-idle .sage-torso {
+  animation: idle-sway 6s ease-in-out infinite;
+}
+.sage-character.state-idle .sage-eyelid {
+  animation: blink 4.5s ease-in-out infinite;
+  transform-origin: center top;
+}
+
+/* Listening state */
+.sage-character.state-listening .sage-body-group {
+  animation: listening-lean 2s ease-in-out infinite;
+}
+.sage-character.state-listening .sage-eye-group {
+  animation: eye-widen 2s ease-in-out infinite;
+  transform-origin: center;
+}
+.sage-character.state-listening .sage-eyelid {
+  animation: blink 8s ease-in-out infinite; /* Less blinking when alert */
+}
+
+/* Speaking state */
+.sage-character.state-speaking .sage-body-group {
+  animation: idle-float 1.5s ease-in-out infinite; /* faster when speaking */
+}
+.sage-character.state-speaking .sage-aura {
+  animation: aura-pulse 0.8s ease-in-out infinite;
+}
+.sage-character.state-speaking .sage-eyelid {
+  animation: blink 6s ease-in-out infinite;
+}
+
+/* Thinking state */
+.sage-character.state-thinking .sage-body-group {
+  animation: thinking-tilt 3s ease-in-out infinite;
+}
+.sage-character.state-thinking .sage-eyelid {
+  transform: scaleY(0.1) !important;
+  animation: none;
+}
+.sage-character.state-thinking .sage-thought-bubble {
+  animation: thought-float 2s ease-in-out infinite;
+  opacity: 1 !important;
+}
+
+/* ── Aura ring (behind character) ── */
+.sage-aura {
+  position: absolute;
+  inset: -20px;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(99, 179, 237, 0.18) 0%,
+    rgba(49, 130, 206, 0.10) 50%,
+    transparent 75%
+  );
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.2;
+  transition: opacity 0.5s ease;
+}
+
+/* Thought bubble (hidden by default) */
+.sage-thought-bubble {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+/* Status label pill */
+.sage-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+}
+
+.sage-status-pill.pill-idle {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+.sage-status-pill.pill-listening {
+  background: rgba(52, 211, 153, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+}
+.sage-status-pill.pill-speaking {
+  background: rgba(99, 179, 237, 0.15);
+  color: #63b3ed;
+  border: 1px solid rgba(99, 179, 237, 0.3);
+}
+.sage-status-pill.pill-thinking {
+  background: rgba(196, 181, 253, 0.15);
+  color: #c4b5fd;
+  border: 1px solid rgba(196, 181, 253, 0.3);
+}
+
+.sage-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: sparkle 1.2s ease-in-out infinite;
+}
+.pill-idle       .sage-status-dot { background: #94a3b8; animation: none; }
+.pill-listening  .sage-status-dot { background: #34d399; }
+.pill-speaking   .sage-status-dot { background: #63b3ed; }
+.pill-thinking   .sage-status-dot { background: #c4b5fd; }
+
+/* Hair shimmer highlight */
+.sage-hair-highlight {
+  animation: hair-shimmer 3s ease-in-out infinite;
+}
+
+/* Sparkle decorations */
+.sage-sparkle {
+  animation: sparkle 2s ease-in-out infinite;
+}
+.sage-sparkle:nth-child(2) { animation-delay: 0.6s; }
+.sage-sparkle:nth-child(3) { animation-delay: 1.2s; }
