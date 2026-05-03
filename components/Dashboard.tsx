@@ -3,6 +3,7 @@ import { GoogleGenAI, Modality, LiveServerMessage } from '@google/genai';
 import { decode, decodeAudioData, createBlob } from '../utils/audioHelpers';
 import LiveVisualizer from './LiveVisualizer';
 import AnimeCharacter, { type CharacterState } from './AnimeCharacter';
+import OllamaConsultation from './OllamaConsultation';
 import NotificationPanel from './NotificationPanel';
 import OfflineAssessmentView from '../views/OfflineAssessmentView';
 import NearbyFacilitiesCardSimple from './NearbyFacilitiesCardSimple';
@@ -20,7 +21,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const MODEL_NAME = 'gemini-2.0-flash-exp';
-const SYSTEM_INSTRUCTION = `
+export const SYSTEM_INSTRUCTION = `
 You are SymptomSage, a professional and empathetic medical triage assistant. 
 Your goal is to help users understand their symptoms and determine the urgency of seeking medical care.
 
@@ -45,6 +46,7 @@ const Dashboard: React.FC = () => {
 
     const [status, setStatus] = useState<ConnectionStatus>(ConnectionStatus.DISCONNECTED);
     const [messages, setMessages] = useState<Message[]>([]);
+    const [consultationMode, setConsultationMode] = useState<'gemini' | 'ollama'>('ollama'); // default to ollama (local)
     const [isUserSpeaking, setIsUserSpeaking] = useState(false);
     const [isAssistantSpeaking, setIsAssistantSpeaking] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -1107,22 +1109,62 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                             exit={{ opacity: 0, x: -10 }}
                             className="flex-1 flex flex-col min-w-0 min-h-0 bg-white shadow-2xl skew-x-[-0.5] origin-top-right z-10"
                         >
-                            <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 md:px-8 py-4 flex items-center justify-between shrink-0 sticky top-0">
-                                <h2 className="text-lg md:text-xl font-bold text-slate-800">Voice Consultation</h2>
-                                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] md:text-xs font-bold ring-1 ${status === ConnectionStatus.CONNECTED ? 'bg-green-50 text-green-700 ring-green-200' :
-                                    status === ConnectionStatus.CONNECTING ? 'bg-blue-50 text-blue-700 ring-blue-200' :
-                                        status === ConnectionStatus.ERROR ? 'bg-red-50 text-red-700 ring-red-200' :
-                                            'bg-slate-100 text-slate-500 ring-slate-200'
-                                    }`}>
-                                    <span className={`w-2 h-2 rounded-full ${status === ConnectionStatus.CONNECTED ? 'bg-green-500 animate-pulse' :
-                                        status === ConnectionStatus.CONNECTING ? 'bg-blue-500 animate-pulse' :
-                                            status === ConnectionStatus.ERROR ? 'bg-red-500' :
-                                                'bg-slate-400'
-                                        }`} />
-                                    <span className="hidden sm:inline">{status}</span>
-                                    <span className="sm:hidden">{status === ConnectionStatus.CONNECTED ? 'Active' : status}</span>
+                            <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 md:px-6 py-3 flex items-center justify-between shrink-0 sticky top-0 gap-4">
+                                <h2 className="text-lg font-bold text-slate-800 shrink-0">Voice Consultation</h2>
+
+                                {/* ── MODE SWITCHER ── */}
+                                <div className="flex items-center bg-slate-100 rounded-xl p-1 gap-1">
+                                    <button
+                                        onClick={() => setConsultationMode('ollama')}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                            consultationMode === 'ollama'
+                                                ? 'bg-purple-600 text-white shadow-sm'
+                                                : 'text-slate-500 hover:text-slate-800'
+                                        }`}
+                                    >
+                                        🦙 Local AI (Ollama)
+                                    </button>
+                                    <button
+                                        onClick={() => setConsultationMode('gemini')}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                            consultationMode === 'gemini'
+                                                ? 'bg-blue-600 text-white shadow-sm'
+                                                : 'text-slate-500 hover:text-slate-800'
+                                        }`}
+                                    >
+                                        ✨ Gemini Live
+                                    </button>
                                 </div>
+
+                                {/* Status badge (only for Gemini mode) */}
+                                {consultationMode === 'gemini' && (
+                                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold ring-1 ${status === ConnectionStatus.CONNECTED ? 'bg-green-50 text-green-700 ring-green-200' :
+                                        status === ConnectionStatus.CONNECTING ? 'bg-blue-50 text-blue-700 ring-blue-200' :
+                                            status === ConnectionStatus.ERROR ? 'bg-red-50 text-red-700 ring-red-200' :
+                                                'bg-slate-100 text-slate-500 ring-slate-200'
+                                        }`}>
+                                        <span className={`w-2 h-2 rounded-full ${status === ConnectionStatus.CONNECTED ? 'bg-green-500 animate-pulse' :
+                                            status === ConnectionStatus.CONNECTING ? 'bg-blue-500 animate-pulse' :
+                                                status === ConnectionStatus.ERROR ? 'bg-red-500' : 'bg-slate-400'
+                                            }`} />
+                                        <span>{status}</span>
+                                    </div>
+                                )}
                             </header>
+
+                            {/* ── OLLAMA LOCAL AI MODE ── */}
+                            {consultationMode === 'ollama' ? (
+                                <div className="flex-1 overflow-hidden p-4">
+                                    <OllamaConsultation
+                                        onEndSession={(msgs) => {
+                                            if (msgs.length > 0 && user?.id) {
+                                                saveChatHistory(user.id, msgs as any);
+                                                summarizeSession(msgs as any);
+                                            }
+                                        }}
+                                    />
+                                </div>
+                            ) : (
 
                             <main className="flex-1 flex flex-col md:flex-row p-6 gap-6 overflow-hidden">
                                 {/* ═══ ANIME CHARACTER PANEL ═══ */}
@@ -1383,6 +1425,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                                     )}
                                 </section>
                             </main>
+                        )}
                         </motion.div>
                     ) : activeView === 'reports' ? (
                         <motion.div
