@@ -24,3 +24,14 @@ dist-ssr
 *.sw?
 
 
+# Python (agent service)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+services/agent/.env
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
