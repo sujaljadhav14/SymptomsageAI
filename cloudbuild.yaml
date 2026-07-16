@@ -12,8 +12,6 @@ steps:
       - '--target'
       - 'frontend'
       - '--build-arg'
-      - 'VITE_GEMINI_API_KEY=$_VITE_GEMINI_API_KEY'
-      - '--build-arg'
       - 'VITE_CLERK_PUBLISHABLE_KEY=$_VITE_CLERK_PUBLISHABLE_KEY'
       - '--build-arg'
       - 'VITE_SUPABASE_URL=$_VITE_SUPABASE_URL'
@@ -23,6 +21,8 @@ steps:
       - 'VITE_GOOGLE_MAPS_API_KEY=$_VITE_GOOGLE_MAPS_API_KEY'
       - '--build-arg'
       - 'VITE_SIMLI_API_KEY=$_VITE_SIMLI_API_KEY'
+      - '--build-arg'
+      - 'VITE_API_BASE_URL=$_VITE_API_BASE_URL'
       - '.'
 
 images:

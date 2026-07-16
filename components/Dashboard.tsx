@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
+import { jsPDF } from 'jspdf';
 
 const MODEL_NAME = 'gemini-2.0-flash-exp';
 export const SYSTEM_INSTRUCTION = `
@@ -112,38 +113,96 @@ const Dashboard: React.FC = () => {
         const report = reportToDownload || latestReport;
         if (!report) return;
 
-        const content = `
-SYMPTOMSAGE AI - CLINICAL TRIAGE REPORT
-Generated on: ${new Date().toLocaleString()}
--------------------------------------------
+        const doc = new jsPDF();
+        const timestamp = new Date().toLocaleString();
+        
+        // Header
+        doc.setFontSize(22);
+        doc.setTextColor(37, 99, 235); // Blue 600
+        doc.text('SymptomSage AI', 105, 20, { align: 'center' });
+        
+        doc.setFontSize(14);
+        doc.setTextColor(100);
+        doc.text('Clinical Triage Report', 105, 30, { align: 'center' });
+        
+        doc.setFontSize(10);
+        doc.text(`Generated on: ${timestamp}`, 105, 38, { align: 'center' });
+        
+        doc.setLineWidth(0.5);
+        doc.line(20, 45, 190, 45);
+        
+        // Severity
+        doc.setFontSize(12);
+        doc.setTextColor(0);
+        doc.setFont('helvetica', 'bold');
+        doc.text('SEVERITY:', 20, 55);
+        
+        const severity = report.severity.toUpperCase();
+        if (severity === 'EMERGENCY' || severity === 'HIGH') {
+            doc.setTextColor(220, 38, 38); // Red 600
+        } else if (severity === 'MEDIUM') {
+            doc.setTextColor(217, 119, 6); // Amber 600
+        } else {
+            doc.setTextColor(22, 163, 74); // Green 600
+        }
+        doc.text(severity, 50, 55);
+        
+        // Summary
+        doc.setTextColor(0);
+        doc.setFont('helvetica', 'bold');
+        doc.text('SUMMARY:', 20, 65);
+        doc.setFont('helvetica', 'normal');
+        const summaryLines = doc.splitTextToSize(report.summary, 170);
+        doc.text(summaryLines, 20, 72);
+        
+        let currentY = 72 + (summaryLines.length * 7);
+        
+        // Precautions
+        doc.setFont('helvetica', 'bold');
+        doc.text('PRECAUTIONS:', 20, currentY);
+        doc.setFont('helvetica', 'normal');
+        currentY += 7;
+        report.precautions.forEach(p => {
+            const lines = doc.splitTextToSize(`• ${p}`, 165);
+            doc.text(lines, 25, currentY);
+            currentY += (lines.length * 6);
+        });
+        
+        currentY += 5;
+        
+        // Recommended Tests
+        doc.setFont('helvetica', 'bold');
+        doc.text('RECOMMENDED TESTS:', 20, currentY);
+        doc.setFont('helvetica', 'normal');
+        currentY += 7;
+        report.recommendedTests.forEach(t => {
+            const lines = doc.splitTextToSize(`• ${t}`, 165);
+            doc.text(lines, 25, currentY);
+            currentY += (lines.length * 6);
+        });
+        
+        currentY += 5;
+        
+        // Clinical Differentiator
+        doc.setFont('helvetica', 'bold');
+        doc.text('CLINICAL DIFFERENTIATOR:', 20, currentY);
+        doc.setFont('helvetica', 'normal');
+        currentY += 7;
+        const diffLines = doc.splitTextToSize(report.differentiation, 170);
+        doc.text(diffLines, 20, currentY);
+        
+        currentY += (diffLines.length * 7) + 10;
+        
+        // Footer/Disclaimer
+        doc.setLineWidth(0.2);
+        doc.line(20, 260, 190, 260);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        const disclaimer = "DISCLAIMER: This report is AI-generated for informational purposes and does not constitute a medical diagnosis. Always seek professional medical advice from a qualified healthcare provider.";
+        const disclaimerLines = doc.splitTextToSize(disclaimer, 170);
+        doc.text(disclaimerLines, 105, 270, { align: 'center' });
 
-SEVERITY: ${report.severity.toUpperCase()}
-
-SUMMARY:
-${report.summary}
-
-PRECAUTIONS:
-${report.precautions.map(p => `- ${p}`).join('\n')}
-
-GENERAL TESTS:
-${report.recommendedTests.map(t => `- ${t}`).join('\n')}
-
-CLINICAL DIFFERENTIATOR:
-${report.differentiation}
-
--------------------------------------------
-DISCLAIMER: This report is AI-generated for informational purposes and does not constitute a medical diagnosis. Always seek professional medical advice.
-        `.trim();
-
-        const blob = new Blob([content], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `SymptomSage_Report_${new Date().toISOString().split('T')[0]}.txt`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        doc.save(`SymptomSage_Report_${new Date().toISOString().split('T')[0]}.pdf`);
     };
 
     const emailReport = async (reportToEmail?: ClinicalReport) => {
@@ -173,7 +232,7 @@ ${report.differentiation || 'None provided.'}
 DISCLAIMER: This report is AI-generated for informational purposes and does not constitute a medical diagnosis. Always seek professional medical advice.
 `;
 
-            const response = await fetch('http://localhost:3001/api/send-report', {
+            const response = await fetch(import.meta.env.VITE_API_BASE_URL + '/api/send-report', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -229,51 +288,25 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
         if (chatMessages.length < 1) return;
 
         setIsGeneratingReport(true);
-        console.log('--- DEBUG: GENERATING REPORT V4 (GEMINI 2.0 SINGLE MODEL) ---');
+        console.log('--- DEBUG: GENERATING REPORT V5 (BACKEND PROXY) ---');
 
         try {
-            const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY || '';
-            if (!apiKey || apiKey === 'PLACEHOLDER_API_KEY') {
-                console.warn('API Key not set. Skipping summarization.');
-                setIsGeneratingReport(false);
-                return;
-            }
-
-            const prompt = `Based on the following medical triage conversation, provide a detailed structured report.
-            
-            Return a valid JSON object with the following structure:
-            {
-              "summary": "2-sentence overview of symptoms and severity",
-              "precautions": ["list", "of", "immediate", "medical", "precautions"],
-              "severity": "low" | "medium" | "high" | "emergency",
-              "recommendedTests": ["list", "of", "general", "medical", "tests", "that", "might", "be", "needed"],
-              "differentiation": "What makes this case different or unique based on the patient's description"
-            }
-      
-            Conversation:
-            ${chatMessages.map(m => `${m.role}: ${m.text}`).join('\n')}
-      
-            Return ONLY the raw JSON.`;
-
-            // Use v1beta for gemini-2.0-flash-exp
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/chat/summarize`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
-                })
+                body: JSON.stringify({ messages: chatMessages })
             });
 
             const data = await response.json();
-            console.log('📄 Gemini Summarization Response:', data);
+            console.log('📄 Backend Summarization Response:', data);
 
             if (!response.ok) {
-                console.error('❌ Gemini API Error Response:', data);
-                setError(`API Error: ${data.error?.message || 'Failed to connect to Gemini 2.0'}`);
+                console.error('❌ Backend API Error Response:', data);
+                setError(`API Error: ${data.error || 'Failed to connect to backend'}`);
                 return;
             }
 
-            const reportResultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            const reportResultText = data.report;
 
             if (reportResultText && user?.id) {
                 try {
@@ -448,7 +481,10 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
             setStatus(ConnectionStatus.CONNECTING);
             setError(null);
 
-            const ai = new GoogleGenAI({ apiKey: (import.meta as any).env.VITE_GEMINI_API_KEY || '' });
+            // NOTE: Gemini Live API currently requires a direct WebRTC connection from the browser.
+            // For production, consider a backend proxy or a session-token exchange if supported by the SDK.
+            const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY || '';
+            const ai = new GoogleGenAI({ apiKey });
 
             // Initialize Audio Contexts
             inputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
@@ -1522,7 +1558,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                                                     <button
                                                         onClick={() => downloadReport(record.report)}
                                                         className="p-2.5 bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-800 rounded-xl transition-all border border-slate-200 active:scale-95"
-                                                        title="Download Report (TXT)"
+                                                        title="Download Report (PDF)"
                                                     >
                                                         <Download className="w-4 h-4" />
                                                     </button>
@@ -1747,7 +1783,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                                 className="px-6 py-2.5 bg-white text-slate-700 border border-slate-200 rounded-xl font-bold hover:bg-slate-50 transition-all active:scale-95 flex items-center gap-2 shadow-sm"
                             >
                                 <Download className="w-4 h-4" />
-                                Download (TXT)
+                                Download (PDF)
                             </button>
                             <button
                                 onClick={() => emailReport()}

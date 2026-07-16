@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import { Send, WifiOff, Bot, User, AlertTriangle, RefreshCw, Zap } from 'lucide-react';
 import { AssessmentResult } from '../../types';
 import { runAssessment, normalizeInput, getCommonSymptoms } from '../../utils/assessmentEngine';
@@ -175,9 +176,9 @@ const ChatSymptomChecker: React.FC<ChatSymptomCheckerProps> = ({ onViewFullResul
                                 }`}>
                                 <div className={`text-sm whitespace-pre-wrap ${message.role === 'assistant' ? 'prose prose-sm' : ''}`}
                                     dangerouslySetInnerHTML={{
-                                        __html: message.content
+                                        __html: DOMPurify.sanitize(message.content
                                             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                                            .replace(/\n/g, '<br/>')
+                                            .replace(/\n/g, '<br/>'))
                                     }}
                                 />
                             </div>

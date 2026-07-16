@@ -105,52 +105,19 @@ const ImageAnalysis: React.FC<ImageAnalysisProps> = ({ onBack }) => {
         setError(null);
 
         try {
-            const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY || '';
-
-            if (!apiKey || apiKey === 'PLACEHOLDER_API_KEY') {
-                throw new Error('Gemini API key not configured');
-            }
-
-            // Convert base64 to proper format for Gemini
-            const base64Data = capturedImage.split(',')[1];
-
-            const requestBody = {
-                contents: [{
-                    parts: [
-                        {
-                            text: `You are a medical AI assistant. Analyze this medical image and provide:
-1. A brief description of what you observe
-2. Potential medical concerns or symptoms visible
-3. Recommended immediate actions or precautions
-4. Whether the person should seek immediate medical attention
-
-IMPORTANT: Always include a disclaimer that this is not a professional medical diagnosis and the user should consult a healthcare provider for accurate diagnosis and treatment.
-
-Be professional, empathetic, and clear in your response.`
-                        },
-                        {
-                            inline_data: {
-                                mime_type: "image/jpeg",
-                                data: base64Data
-                            }
-                        }
-                    ]
-                }]
-            };
-
             const response = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+                `${import.meta.env.VITE_API_BASE_URL}/api/analyze-image`,
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestBody)
+                    body: JSON.stringify({ image: capturedImage })
                 }
             );
 
             if (!response.ok) {
                 // Get detailed error message from response
                 const errorData = await response.json().catch(() => null);
-                const errorMessage = errorData?.error?.message || response.statusText;
+                const errorMessage = errorData?.error || response.statusText;
 
                 // Check for specific error types
                 if (response.status === 429) {
@@ -165,7 +132,7 @@ Be professional, empathetic, and clear in your response.`
             }
 
             const data = await response.json();
-            const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            const resultText = data.text;
 
             if (resultText) {
                 setAnalysisResult({

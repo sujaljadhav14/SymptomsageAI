@@ -17,9 +17,12 @@
     "@react-three/fiber": "^9.6.1",
     "@supabase/supabase-js": "^2.91.1",
     "cors": "^2.8.6",
+    "dompurify": "^3.4.2",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "framer-motion": "^12.29.0",
+    "jsdom": "^29.1.1",
+    "jspdf": "^4.2.1",
     "lucide-react": "^0.563.0",
     "nodemailer": "^7.0.12",
     "react": "^19.2.3",
@@ -28,6 +31,7 @@
     "three": "^0.184.0"
   },
   "devDependencies": {
+    "@types/dompurify": "^3.0.5",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.8.2",

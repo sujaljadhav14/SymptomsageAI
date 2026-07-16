@@ -27,7 +27,7 @@ Since we have two services (Frontend & Backend), we use `cloudbuild.yaml` to bui
 Run this command from the root directory:
 ```bash
 gcloud builds submit --config cloudbuild.yaml \
-    --substitutions=_VITE_GEMINI_API_KEY="your_key",_VITE_CLERK_PUBLISHABLE_KEY="your_key",_VITE_SUPABASE_URL="your_url",_VITE_SUPABASE_ANON_KEY="your_key",_VITE_GOOGLE_MAPS_API_KEY="your_key",_VITE_SIMLI_API_KEY="your_key"
+    --substitutions=_VITE_CLERK_PUBLISHABLE_KEY="your_key",_VITE_SUPABASE_URL="your_url",_VITE_SUPABASE_ANON_KEY="your_key",_VITE_GOOGLE_MAPS_API_KEY="your_key",_VITE_SIMLI_API_KEY="your_key"
 ```
 
 ---
@@ -44,7 +44,7 @@ gcloud run deploy symptomsage-backend \
     --platform managed \
     --region us-central1 \
     --allow-unauthenticated \
-    --set-env-vars="SMTP_HOST=smtp.gmail.com,SMTP_PORT=587,SMTP_USER=your-email@gmail.com,SMTP_PASS=your-app-password"
+    --set-env-vars="GEMINI_API_KEY=your_gemini_key,SMTP_HOST=smtp.gmail.com,SMTP_PORT=587,SMTP_USER=your-email@gmail.com,SMTP_PASS=your-app-password"
 ```
 
 ### B. Deploy Frontend
