@@ -1,5 +1,11 @@
-"""SymptomSage Agent package."""
-from .graph import sage_graph, build_graph
-from .state import AgentState, initial_state
+"""SymptomSage Agent package — multi-agent (supervisor + specialists)."""
+from .graph import sage_graph, build_graph, build_default_graph
+from .state import AgentState, ToolInvocation
 
-__all__ = ["sage_graph", "build_graph", "AgentState", "initial_state"]
+__all__ = [
+    "sage_graph",
+    "build_graph",
+    "build_default_graph",
+    "AgentState",
+    "ToolInvocation",
+]

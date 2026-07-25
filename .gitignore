@@ -35,3 +35,6 @@ services/agent/.env
 .ruff_cache/
 *.egg-info/
 
+
+# ZCode editor
+.zcode/
