@@ -87,27 +87,36 @@ async def health():
     return {"status": "ok", "service": "symptomsage-agent", "version": "0.2.0"}
 
 
-@app.post("/api/agent/chat", response_model=ChatResponse)
+@app.post("/api/agent/chat")
 async def chat(req: ChatRequest):
     """Run one turn through the multi-agent supervisor (multi-turn aware)."""
+    from fastapi.responses import JSONResponse
     from langchain_core.messages import HumanMessage
 
     config = _config(req.session_id)
     inputs = {"messages": [HumanMessage(content=req.message)]}
-    # image attachment is surfaced to vision tools via tool args at runtime
 
-    result = await sage_graph.ainvoke(inputs, config=config)
+    try:
+        result = await sage_graph.ainvoke(inputs, config=config)
+    except Exception as exc:
+        return JSONResponse(
+            status_code=502,
+            content={
+                "answer": f"Agent error: {exc}",
+                "session_id": req.session_id,
+                "messages": [],
+                "error": str(exc),
+            },
+        )
 
-    # The supervisor's output_mode='full_history' gives us the full message list.
     msgs = [_message_to_dict(m) for m in result.get("messages", [])]
-    # The last AI message is the answer.
     answer = ""
     for m in reversed(result.get("messages", [])):
         if getattr(m, "type", "") in ("ai", "assistant") and getattr(m, "content", "").strip():
             answer = m.content
             break
 
-    return ChatResponse(answer=answer, session_id=req.session_id, messages=msgs)
+    return {"answer": answer, "session_id": req.session_id, "messages": msgs}
 
 
 @app.post("/api/agent/chat/stream")
@@ -158,18 +167,29 @@ async def chat_stream(req: ChatRequest):
     return EventSourceResponse(event_generator())
 
 
-@app.post("/api/agent/chat/resume", response_model=ChatResponse)
+@app.post("/api/agent/chat/resume")
 async def chat_resume(req: ResumeRequest):
     """Resume a conversation that paused on a follow-up question.
 
     Used after the agent called ``ask_followup`` (an interrupt). The user's
     answer is fed back via ``Command(resume=...)`` and the graph continues.
     """
-    from langchain_core.messages import AIMessage
+    from fastapi.responses import JSONResponse
     from langgraph.types import Command
 
     config = _config(req.session_id)
-    result = await sage_graph.ainvoke(Command(resume=req.answer), config=config)
+    try:
+        result = await sage_graph.ainvoke(Command(resume=req.answer), config=config)
+    except Exception as exc:
+        return JSONResponse(
+            status_code=502,
+            content={
+                "answer": f"Resume error: {exc}",
+                "session_id": req.session_id,
+                "messages": [],
+                "error": str(exc),
+            },
+        )
 
     msgs = [_message_to_dict(m) for m in result.get("messages", [])]
     answer = ""
@@ -178,7 +198,7 @@ async def chat_resume(req: ResumeRequest):
             answer = m.content
             break
 
-    return ChatResponse(answer=answer, session_id=req.session_id, messages=msgs)
+    return {"answer": answer, "session_id": req.session_id, "messages": msgs}
 
 
 @app.get("/api/agent/session/{session_id}/history")

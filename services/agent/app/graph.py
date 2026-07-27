@@ -93,7 +93,6 @@ def build_graph(checkpointer=None):
 
     return supervisor.compile(checkpointer=checkpointer)
 
-
 def build_default_graph():
     """Build the graph with an in-memory checkpointer (dev default).
 
