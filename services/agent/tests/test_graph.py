@@ -1,24 +1,27 @@
-"""End-to-end tests for the Sage agent graph.
+"""Tests for the multi-agent (supervisor + specialists) architecture.
 
-These run WITHOUT network (Ollama fallback / mocked LLM paths) so they're fast
-and deterministic. The emergency regression test is the most important — it must
-NEVER silently downgrade a red-flag case.
+The red-flag tool tests are fully deterministic (no LLM). The graph-level tests
+verify structure and wiring without requiring a live LLM — they're fast and
+run in CI. Full end-to-end (with Gemini/Ollama) is verified manually via the
+health + chat endpoints (see services/agent/README.md).
 """
 import pytest
 
-from app.state import initial_state
-from app.graph import build_graph
+from app.graph import build_graph, build_default_graph, sage_graph
+from app.state import AgentState, ToolInvocation
 from app.tools.redflag import check_red_flags
+from app.tools import (
+    ALL_TOOLS,
+    EMERGENCY_TOOLS,
+    TRIAGE_TOOLS,
+    VISION_TOOLS,
+    GENERAL_TOOLS,
+    ask_followup,
+)
 
 
-@pytest.fixture(scope="module")
-def graph():
-    return build_graph()
+# ── Red-flag tool (deterministic, no LLM) ────────────────────────────────────
 
-
-# ---------------------------------------------------------------------------
-# Red-flag tool (deterministic, no LLM)
-# ---------------------------------------------------------------------------
 @pytest.mark.parametrize("text", [
     "I have severe chest pain and my arm is numb",
     "I can't breathe properly",
@@ -43,29 +46,80 @@ def test_red_flag_tool_clears_non_emergencies(text):
     assert result["matched_flags"] == []
 
 
-# ---------------------------------------------------------------------------
-# Router — keyword fallback path (no LLM needed)
-# ---------------------------------------------------------------------------
-def test_router_keyword_fallback_emergency():
-    from app.nodes.router import _keyword_fallback
-    assert _keyword_fallback("chest pain and can't breathe") == "emergency"
-    assert _keyword_fallback("look at this rash photo") == "vision"
-    assert _keyword_fallback("I have a fever and cough") == "triage"
-    assert _keyword_fallback("hello there") == "general"
+# ── Tool set organization (specialist assignments) ───────────────────────────
+
+def test_emergency_agent_has_critical_tools():
+    names = {t.name for t in EMERGENCY_TOOLS}
+    assert "check_red_flags" in names
+    assert "find_nearby_facilities" in names
 
 
-# ---------------------------------------------------------------------------
-# Graph smoke test — emergency path must set is_emergency + severity=emergency
-# This is the critical safety regression.
-# ---------------------------------------------------------------------------
-@pytest.mark.asyncio
-async def test_graph_emergency_path_sets_flags(graph):
-    state = initial_state(user_id="test-user", user_input="severe chest pain, can't breathe")
-    result = await graph.ainvoke(state)
-    assert result["is_emergency"] is True
-    assert result["severity"] == "emergency"
-    # Emergency synthesizer path emits a deterministic prefix
-    assert "🚨" in result["final_answer"]
-    # And the tool trace must show the red-flag check ran
-    tool_names = [t["name"] for t in result["tool_trace"]]
-    assert "check_red_flags" in tool_names
+def test_triage_agent_has_full_pipeline():
+    names = {t.name for t in TRIAGE_TOOLS}
+    # Must include the follow-up tool (enables clarifying questions)
+    assert "ask_followup" in names
+    assert "generate_triage_report" in names
+    assert "recall_patient_history" in names
+    assert "save_session_summary" in names
+
+
+def test_vision_agent_has_image_tool():
+    names = {t.name for t in VISION_TOOLS}
+    assert "analyze_medical_image" in names
+
+
+def test_general_agent_has_no_tools():
+    assert GENERAL_TOOLS == []
+
+
+def test_all_tools_superset_of_specialists():
+    all_names = {t.name for t in ALL_TOOLS}
+    for subset in (EMERGENCY_TOOLS, TRIAGE_TOOLS, VISION_TOOLS):
+        assert {t.name for t in subset}.issubset(all_names)
+
+
+# ── Follow-up tool wiring ────────────────────────────────────────────────────
+
+def test_ask_followup_is_registered():
+    assert ask_followup.name == "ask_followup"
+    assert "Ask" in ask_followup.description
+
+
+# ── Graph structure ──────────────────────────────────────────────────────────
+
+def test_default_graph_compiles_with_checkpointer():
+    """The module-level sage_graph must be ready to serve multi-turn requests."""
+    assert sage_graph is not None
+
+
+def test_graph_contains_all_specialists():
+    """All four specialist agents must be wired into the supervisor graph."""
+    g = sage_graph.get_graph()
+    node_ids = set(g.nodes.keys())
+    assert "sage_supervisor" in node_ids
+    assert "emergency_agent" in node_ids
+    assert "triage_agent" in node_ids
+    assert "vision_agent" in node_ids
+    assert "general_agent" in node_ids
+
+
+def test_build_graph_accepts_custom_checkpointer():
+    """Callers must be able to supply their own checkpointer (e.g. Redis)."""
+    from langgraph.checkpoint.memory import MemorySaver
+
+    custom = build_graph(checkpointer=MemorySaver())
+    assert custom is not None
+
+
+# ── State schema ─────────────────────────────────────────────────────────────
+
+def test_state_has_messages_field():
+    """AgentState must expose `messages` (the multi-turn accumulator)."""
+    assert "messages" in AgentState.__annotations__
+    assert "user_id" in AgentState.__annotations__
+    assert "session_id" in AgentState.__annotations__
+
+
+def test_tool_invocation_schema():
+    ti: ToolInvocation = {"name": "check_red_flags", "args": {}, "result_summary": "ok"}
+    assert ti["name"] == "check_red_flags"

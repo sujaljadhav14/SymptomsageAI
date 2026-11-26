@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Camera, Upload, X, ArrowLeft, Loader2, AlertCircle, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useApi } from '../utils/api';
 import {
     Activity, ClipboardList, Clock,
     ArrowRight, MapPin
@@ -17,6 +18,7 @@ interface ImageAnalysisProps {
 }
 
 const ImageAnalysis: React.FC<ImageAnalysisProps> = ({ onBack }) => {
+    const apiFetch = useApi();
     const navigate = useNavigate();
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
     const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
@@ -105,14 +107,10 @@ const ImageAnalysis: React.FC<ImageAnalysisProps> = ({ onBack }) => {
         setError(null);
 
         try {
-            const response = await fetch(
-                `${import.meta.env.VITE_API_BASE_URL}/api/analyze-image`,
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ image: capturedImage })
-                }
-            );
+            const response = await apiFetch('/api/analyze-image', {
+                method: 'POST',
+                body: JSON.stringify({ image: capturedImage })
+            });
 
             if (!response.ok) {
                 // Get detailed error message from response

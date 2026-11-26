@@ -24,7 +24,7 @@ RED_FLAG_KEYWORDS: dict[str, list[str]] = {
 }
 
 EMERGENCY_INSTRUCTIONS = [
-    "Call emergency services (911 / 112 / 108) immediately.",
+    "Call 112 (national emergency) or 108 (ambulance) immediately.",
     "Do not drive yourself — have someone take you or call an ambulance.",
     "Stay on the line with emergency services and follow their instructions.",
     "If the person becomes unresponsive, begin CPR if trained to do so.",

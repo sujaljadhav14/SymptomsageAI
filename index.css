@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-paper font-sans text-ink antialiased;
+    font-feature-settings: 'ss01', 'cv11';
+  }
+
+  ::selection {
+    background: #ffcc2e;
+    color: #0b0b0b;
+  }
+
+  :focus-visible {
+    outline: 2px solid #0b0b0b;
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Small mono uppercase section label: "01 — HOW IT WORKS" */
+  .label-mono {
+    @apply font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-ink-3;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border-2 border-ink px-5 py-3 text-sm font-bold
+      transition-all duration-150 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
+      disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-brand-600 text-white shadow-hard hover:bg-brand-700;
+  }
+  .btn-dark {
+    @apply btn bg-ink text-paper shadow-hard-brand hover:bg-ink-2;
+  }
+  .btn-signal {
+    @apply btn bg-signal text-white shadow-hard hover:bg-signal-ink;
+  }
+  .btn-ghost {
+    @apply btn bg-white text-ink shadow-hard-sm hover:bg-paper-2;
+  }
+
+  .card {
+    @apply rounded-2xl border-2 border-ink bg-white shadow-hard;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-ink/80 bg-white px-3 py-1 text-xs font-semibold;
+  }
+
+  /* Halftone dot textures */
+  .halftone {
+    background-image: radial-gradient(rgba(11, 11, 11, 0.28) 1.1px, transparent 1.5px);
+    background-size: 7px 7px;
+  }
+  .halftone-light {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.22) 1.1px, transparent 1.5px);
+    background-size: 7px 7px;
+  }
+  .halftone-brand {
+    background-image: radial-gradient(rgba(3, 38, 33, 0.35) 1.1px, transparent 1.5px);
+    background-size: 7px 7px;
+  }
+
+  .animate-shimmer {
+    background-image: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
+    background-size: 200% 100%;
+  }
+}
+
+@layer utilities {
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}

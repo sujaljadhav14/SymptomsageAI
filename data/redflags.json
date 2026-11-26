@@ -16,7 +16,7 @@
         "confusion",
         "slurred_speech"
     ],
-    "emergencyMessage": "🚨 EMERGENCY: These symptoms require immediate medical attention. Please call emergency services (911) or go to the nearest emergency room immediately.",
+    "emergencyMessage": "🚨 EMERGENCY: These symptoms require immediate medical attention. Call 112 (or 108 for an ambulance) now, or go to the nearest emergency room immediately.",
     "keywords": {
         "chest_pain": [
             "chest pain",
@@ -107,7 +107,7 @@
         ]
     },
     "instructions": [
-        "Stay calm and call for help immediately",
+        "Call 112 (national emergency) or 108 (ambulance) right now",
         "Do not drive yourself - call an ambulance or have someone drive you",
         "If with someone experiencing these symptoms, stay with them",
         "Keep the person comfortable and still if possible",
