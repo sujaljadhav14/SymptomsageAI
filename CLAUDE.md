@@ -28,6 +28,12 @@ cd services/agent; uv run uvicorn app.main:app --reload --port 8000
 
 Env: frontend reads `.env.local` (`VITE_*`), Node server reads root `.env.local` too, agent reads `services/agent/.env`. See `.env.example`. **Never print, log or commit key values.**
 
+## Git workflow
+
+- Work on a branch, open a PR with `gh` (path: `C:\Program Files\GitHub CLI\gh.exe` if not on PATH), merge it, then `git checkout main && git pull`.
+- Commits: 2-4 line plain messages, no `Co-Authored-By` trailer and no tool attribution (owner's request).
+- Keep each PR a real, focused change.
+
 ## Layout
 
 - `components/LandingPage.tsx` — public marketing page + live offline checker
