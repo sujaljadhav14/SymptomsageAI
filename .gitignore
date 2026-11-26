@@ -38,3 +38,21 @@ services/agent/.env
 
 # ZCode editor
 .zcode/
+
+# Env files (never commit secrets)
+.env.*
+!.env.example
+server/.env
+
+# Claude Code local settings (launch.json is shared)
+.claude/settings.local.json
+.claude/worktrees/
+
+# Agent service test dumps and caches
+services/agent/*.json
+.mypy_cache/
+.uv-cache/
+
+# Build / test output
+coverage/
+*.tsbuildinfo
