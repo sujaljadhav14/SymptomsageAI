@@ -19,7 +19,7 @@ Started as a hackathon project (Jan 2026), mostly vibe-coded. Being turned into 
 
 ```powershell
 npm install
-npm run dev        # Vite frontend, http://localhost:3000
+npm run dev        # Vite frontend, http://localhost:5173
 npm run server     # Express backend, :3001 (email + summarize + image analysis)
 npm run build      # production build -> dist/ (run this before finishing UI work)
 # Agent service (optional, Python 3.11+, uses uv):
