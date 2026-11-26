@@ -385,7 +385,7 @@ const HospitalLocator: React.FC<HospitalLocatorProps> = ({ onBack }) => {
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900">
             {/* Header */}
-            <header className="bg-white border-b border-slate-200 px-6 py-4 shadow-sm sticky top-0 z-40">
+            <header className="bg-white border-b-2 border-ink px-6 py-4 shadow-sm sticky top-0 z-40">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                     <div className="flex items-center gap-4">
                         <button
@@ -555,7 +555,7 @@ const HospitalLocator: React.FC<HospitalLocatorProps> = ({ onBack }) => {
             <main className="p-6">
                 <div className="flex flex-col lg:flex-row gap-6 max-w-7xl mx-auto">
                     {/* Map Section */}
-                    <div className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden h-[400px] md:h-auto md:min-h-[500px] relative">
+                    <div className="flex-1 bg-white rounded-2xl border-2 border-ink shadow-sm overflow-hidden h-[400px] md:h-auto md:min-h-[500px] relative">
                         {/* Click Instruction */}
                         <div className="absolute top-4 left-4 z-10 bg-blue-600 text-white px-3 py-2 rounded-xl text-[10px] md:text-sm font-medium shadow-lg flex items-center gap-2 max-w-[200px] md:max-w-none">
                             <span className="animate-pulse">👆</span>
@@ -651,7 +651,7 @@ const HospitalLocator: React.FC<HospitalLocatorProps> = ({ onBack }) => {
                     {/* Hospital List */}
                     <div className="w-full lg:w-96 space-y-4 max-h-[600px] overflow-y-auto">
                         {filteredHospitals.length === 0 && !loading && (
-                            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
+                            <div className="bg-white rounded-2xl border-2 border-ink p-8 text-center">
                                 <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <Hospital className="w-8 h-8 text-blue-500" />
                                 </div>

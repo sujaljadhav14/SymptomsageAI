@@ -163,7 +163,7 @@ const ImageAnalysis: React.FC<ImageAnalysisProps> = ({ onBack }) => {
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900">
             {/* Header */}
-            <header className="bg-white border-b border-slate-200 px-4 md:px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-40">
+            <header className="bg-white border-b-2 border-ink px-4 md:px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-40">
                 <div className="flex items-center gap-3 md:gap-4">
                     <button
                         onClick={() => onBack ? onBack() : navigate('/app')}
@@ -172,7 +172,7 @@ const ImageAnalysis: React.FC<ImageAnalysisProps> = ({ onBack }) => {
                         <ArrowLeft className="w-5 h-5 text-slate-600" />
                     </button>
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200 shrink-0">
+                        <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200 shrink-0">
                             <Camera className="w-4 h-4 md:w-5 md:h-5 text-white" />
                         </div>
                         <div>
@@ -213,10 +213,10 @@ const ImageAnalysis: React.FC<ImageAnalysisProps> = ({ onBack }) => {
                 <div className="flex flex-col lg:flex-row gap-6">
                     {/* Left Panel - Image Capture/Upload */}
                     <div className="flex-1 space-y-6">
-                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div className="bg-white rounded-2xl border-2 border-ink shadow-sm overflow-hidden">
                             {!capturedImage && !isCameraActive && (
                                 <div className="p-6 md:p-8 text-center space-y-6">
-                                    <div className="w-16 h-16 md:w-24 md:h-24 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full flex items-center justify-center mx-auto">
+                                    <div className="w-16 h-16 md:w-24 md:h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto">
                                         <ImageIcon className="w-8 h-8 md:w-12 md:h-12 text-blue-600" />
                                     </div>
                                     <div>
@@ -284,7 +284,7 @@ const ImageAnalysis: React.FC<ImageAnalysisProps> = ({ onBack }) => {
                                         <button
                                             onClick={analyzeImage}
                                             disabled={loading}
-                                            className="w-full mt-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-bold shadow-md hover:shadow-lg disabled:opacity-50 transition-all active:scale-95 flex items-center justify-center gap-2"
+                                            className="w-full mt-6 py-4 bg-blue-600 text-white rounded-xl font-bold shadow-md hover:shadow-lg disabled:opacity-50 transition-all active:scale-95 flex items-center justify-center gap-2"
                                         >
                                             {loading ? (
                                                 <>
@@ -304,7 +304,7 @@ const ImageAnalysis: React.FC<ImageAnalysisProps> = ({ onBack }) => {
                         </div>
 
                         {/* Info Card */}
-                        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+                        <div className="bg-white rounded-2xl border-2 border-ink p-5 shadow-sm space-y-3">
                             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">How to use</h3>
                             <ul className="text-sm text-slate-600 space-y-2.5">
                                 <li className="flex gap-2">
@@ -332,7 +332,7 @@ const ImageAnalysis: React.FC<ImageAnalysisProps> = ({ onBack }) => {
                         <div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] border border-white shadow-xl shadow-slate-200/50 p-8 min-h-[500px] transition-all duration-500 hover:shadow-2xl hover:shadow-blue-100/30">
                             {!analysisResult && !loading && (
                                 <div className="h-full flex flex-col items-center justify-center text-center space-y-6 p-8">
-                                    <div className="w-24 h-24 bg-gradient-to-br from-slate-50 to-slate-100 rounded-[2rem] flex items-center justify-center border border-slate-200 shadow-inner">
+                                    <div className="w-24 h-24 bg-slate-50 rounded-[2rem] flex items-center justify-center border border-slate-200 shadow-inner">
                                         <Sparkles className="w-12 h-12 text-slate-300 animate-pulse" />
                                     </div>
                                     <div className="space-y-2">
@@ -384,7 +384,7 @@ const ImageAnalysis: React.FC<ImageAnalysisProps> = ({ onBack }) => {
                                             </button>
                                         </div>
 
-                                        <div className="bg-white/80 backdrop-blur-sm border border-slate-200 rounded-[2rem] p-8 shadow-sm relative overflow-hidden group">
+                                        <div className="bg-white/80 backdrop-blur-sm border-2 border-ink rounded-[2rem] p-8 shadow-sm relative overflow-hidden group">
                                             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                                 <Activity className="w-32 h-32" />
                                             </div>

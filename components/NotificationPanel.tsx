@@ -60,7 +60,7 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({
             {/* Panel */}
             <div className="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl z-50 animate-in slide-in-from-right duration-300 flex flex-col">
                 {/* Header */}
-                <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+                <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-blue-600 text-white">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                             <Bell className="w-5 h-5" />

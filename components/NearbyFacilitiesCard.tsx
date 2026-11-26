@@ -130,7 +130,7 @@ const NearbyFacilitiesCard: React.FC<NearbyFacilitiesCardProps> = ({
     // Don't show if location not available
     if (!userLocation && !isLoading && !error) {
         return (
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 p-6">
+            <div className="bg-blue-50 rounded-2xl border border-blue-100 p-6">
                 <div className="flex items-start gap-4">
                     <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
                         <MapPin className="w-6 h-6 text-blue-600" />
@@ -155,9 +155,9 @@ const NearbyFacilitiesCard: React.FC<NearbyFacilitiesCardProps> = ({
     }
 
     return (
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="bg-white rounded-2xl border-2 border-ink overflow-hidden">
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 text-white">
+            <div className="bg-blue-600 p-4 text-white">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <MapPin className="w-5 h-5" />
@@ -179,7 +179,7 @@ const NearbyFacilitiesCard: React.FC<NearbyFacilitiesCardProps> = ({
             </div>
 
             {/* Tabs */}
-            <div className="flex border-b border-slate-200">
+            <div className="flex border-b-2 border-ink">
                 {Object.entries(TAB_CONFIG).map(([key, config]) => (
                     <button
                         key={key}
@@ -221,7 +221,7 @@ const NearbyFacilitiesCard: React.FC<NearbyFacilitiesCardProps> = ({
                         <button
                             onClick={() => setCategoryFilter('private')}
                             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${categoryFilter === 'private'
-                                ? 'bg-purple-600 text-white'
+                                ? 'bg-brand-600 text-white'
                                 : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
                                 }`}
                         >
@@ -307,7 +307,7 @@ const FacilityCard: React.FC<{ facility: HealthcareFacility }> = ({ facility }) 
                         </div>
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 ${facility.category === 'government'
                             ? 'bg-emerald-100 text-emerald-700'
-                            : 'bg-purple-100 text-purple-700'
+                            : 'bg-brand-100 text-brand-700'
                             }`}>
                             {facility.category === 'government' ? 'Govt' : 'Private'}
                         </span>

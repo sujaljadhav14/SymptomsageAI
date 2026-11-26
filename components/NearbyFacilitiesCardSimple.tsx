@@ -92,7 +92,7 @@ const NearbyFacilitiesCardSimple: React.FC<NearbyFacilitiesCardSimpleProps> = ({
 
     if (!userLocation && !isLoading && !error) {
         return (
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100 p-4 mt-4">
+            <div className="bg-blue-50 rounded-xl border border-blue-100 p-4 mt-4">
                 <div className="flex items-start gap-3">
                     <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
                         <MapPin className="w-5 h-5 text-blue-600" />
@@ -119,7 +119,7 @@ const NearbyFacilitiesCardSimple: React.FC<NearbyFacilitiesCardSimpleProps> = ({
     return (
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden mt-4">
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-700 to-indigo-700 p-3 text-white">
+            <div className="bg-blue-700 p-3 text-white">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4" />
@@ -149,7 +149,7 @@ const NearbyFacilitiesCardSimple: React.FC<NearbyFacilitiesCardSimpleProps> = ({
             </div>
 
             {/* Tabs */}
-            <div className="flex border-b border-slate-200">
+            <div className="flex border-b-2 border-ink">
                 <button
                     onClick={() => setActiveTab('labs')}
                     className={`flex-1 py-2 px-3 flex items-center justify-center gap-1.5 text-xs font-medium transition-all ${activeTab === 'labs'
@@ -195,7 +195,7 @@ const NearbyFacilitiesCardSimple: React.FC<NearbyFacilitiesCardSimpleProps> = ({
                 <button
                     onClick={() => setCategoryFilter('private')}
                     className={`px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 transition-all ${categoryFilter === 'private'
-                        ? 'bg-purple-600 text-white'
+                        ? 'bg-brand-600 text-white'
                         : 'bg-white border border-slate-200 text-slate-600'
                         }`}
                 >

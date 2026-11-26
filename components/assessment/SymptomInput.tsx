@@ -69,9 +69,9 @@ const SymptomInput: React.FC<SymptomInputProps> = ({ onSubmit, isLoading }) => {
     };
 
     return (
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-3xl border-2 border-ink shadow-sm overflow-hidden">
             {/* Header */}
-            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 text-white">
+            <div className="bg-emerald-600 p-6 text-white">
                 <h2 className="text-xl font-bold mb-1">Quick Health Assessment</h2>
                 <p className="text-white/80 text-sm">
                     Select your symptoms below for an instant, explainable assessment
@@ -244,7 +244,7 @@ const SymptomInput: React.FC<SymptomInputProps> = ({ onSubmit, isLoading }) => {
                     disabled={selectedSymptoms.length === 0 || isLoading}
                     className={`w-full py-4 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-3 ${selectedSymptoms.length === 0
                         ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-200 hover:shadow-xl active:scale-[0.98]'
+                        : 'bg-emerald-600 text-white shadow-lg shadow-emerald-200 hover:shadow-xl active:scale-[0.98]'
                         }`}
                 >
                     {isLoading ? (
