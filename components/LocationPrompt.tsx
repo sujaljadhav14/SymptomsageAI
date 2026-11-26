@@ -20,7 +20,7 @@ const LocationPrompt: React.FC<LocationPromptProps> = ({ onAllow, onSkip, isLoad
 
                 <div className="text-center">
                     {/* Icon */}
-                    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-200">
+                    <div className="w-20 h-20 bg-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-200">
                         <MapPin className="w-10 h-10 text-white" />
                     </div>
 
@@ -63,7 +63,7 @@ const LocationPrompt: React.FC<LocationPromptProps> = ({ onAllow, onSkip, isLoad
                         <button
                             onClick={onAllow}
                             disabled={isLoading}
-                            className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-blue-200 hover:shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
+                            className="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg shadow-blue-200 hover:shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
                         >
                             {isLoading ? (
                                 <>

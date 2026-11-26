@@ -719,7 +719,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
     return (
         <div className="flex flex-col md:flex-row h-screen bg-slate-50 text-slate-900 overflow-hidden font-sans relative">
             {/* Mobile Header (Only visible on mobile) */}
-            <header className="md:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between z-30 shrink-0">
+            <header className="md:hidden bg-white border-b-2 border-ink px-4 py-3 flex items-center justify-between z-30 shrink-0">
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => setSidebarOpen(true)}
@@ -823,7 +823,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                 <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto" aria-label="Main">
                     {[
                         { id: 'home', icon: Home, label: 'Home' },
-                        { id: 'assessment', icon: ClipboardList, label: 'Symptom check', badge: 'Offline' },
+                        { id: 'assessment', icon: ClipboardList, label: 'Self-check', badge: 'Offline' },
                         { id: 'consultation', icon: MessageSquare, label: 'Consultation' },
                         { id: 'agent-chat', icon: Bot, label: 'AI Agent', badge: 'New' },
                         { id: 'image-analysis', icon: Camera, label: 'Image Analysis' },
@@ -842,7 +842,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                                     }`}
                             >
                                 <item.icon className="w-5 h-5 shrink-0" />
-                                <span className="font-bold text-sm">{item.label}</span>
+                                <span className="font-bold text-sm whitespace-nowrap">{item.label}</span>
                                 {item.badge && (
                                     <span className={`ml-auto px-1.5 py-0.5 font-mono text-[9px] font-semibold rounded uppercase tracking-wider ${active ? 'bg-white/20 text-white' : 'bg-caution text-ink'}`}>
                                         {item.badge}
@@ -932,8 +932,9 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                             className="flex-1 flex flex-col min-w-0 min-h-0 bg-transparent z-10"
                         >
                             {/* Home Header */}
-                            <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex items-center justify-between shrink-0 sticky top-0 z-10">
-                                <Logo />
+                            <header className="bg-white/80 backdrop-blur-md border-b-2 border-ink px-8 py-4 flex items-center justify-between shrink-0 sticky top-0 z-10">
+                                <span className="md:hidden"><Logo /></span>
+                                <p className="label-mono hidden md:block">Dashboard</p>
                                 <button
                                     onClick={() => setShowNotifications(true)}
                                     className="relative p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all group"
@@ -955,7 +956,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                                         className="text-center space-y-2"
                                     >
                                         <h2 className="font-display text-3xl md:text-5xl font-extrabold tracking-tight text-ink px-4">
-                                            {aiGreeting || 'Welcome back! 👋'}
+                                            {aiGreeting || 'Welcome back'}
                                         </h2>
                                         <p className="label-mono">
                                             How can we help today?
@@ -1039,10 +1040,10 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
 
                                     {/* AI Health Tips */}
                                     <div className="bg-white/40 backdrop-blur-xl rounded-[2rem] p-8 border border-white/60 shadow-sm relative overflow-hidden group">
-                                        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-indigo-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                                        <div className="absolute inset-0 bg-blue-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                                         <div className="relative z-10">
                                             <div className="flex items-center gap-4 mb-6">
-                                                <div className="w-12 h-12 bg-gradient-to-tr from-amber-100 to-orange-100 rounded-2xl flex items-center justify-center shadow-inner">
+                                                <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center shadow-inner">
                                                     <Sparkles className="w-6 h-6 text-amber-600 drop-shadow-sm" />
                                                 </div>
                                                 <div>
@@ -1083,7 +1084,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                                             initial={{ opacity: 0, scale: 0.95 }}
                                             animate={{ opacity: 1, scale: 1 }}
                                             transition={{ duration: 0.5, delay: 0.2 }}
-                                            className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm"
+                                            className="bg-white rounded-3xl p-6 border-2 border-ink shadow-sm"
                                         >
                                             <div className="flex items-center justify-between mb-4">
                                                 <div className="flex items-center gap-3">
@@ -1126,7 +1127,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                             exit={{ opacity: 0, x: -10 }}
                             className="flex-1 flex flex-col min-w-0 min-h-0 bg-white shadow-2xl skew-x-[-0.5] origin-top-right z-10"
                         >
-                            <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 md:px-6 py-3 flex items-center justify-between shrink-0 sticky top-0 gap-4">
+                            <header className="bg-white/80 backdrop-blur-md border-b-2 border-ink px-4 md:px-6 py-3 flex items-center justify-between shrink-0 sticky top-0 gap-4">
                                 <h2 className="text-lg font-bold text-slate-800 shrink-0">Voice Consultation</h2>
 
                                 {/* ── MODE SWITCHER ── */}
@@ -1134,7 +1135,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                                     <button
                                         onClick={() => setConsultationMode('ollama')}
                                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${consultationMode === 'ollama'
-                                            ? 'bg-purple-600 text-white shadow-sm'
+                                            ? 'bg-brand-600 text-white shadow-sm'
                                             : 'text-slate-500 hover:text-slate-800'
                                             }`}
                                     >
@@ -1195,7 +1196,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                                             </p>
                                         )}
                                     </aside>
-                                    <section className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+                                    <section className="flex-1 bg-white rounded-2xl border-2 border-ink shadow-sm flex flex-col overflow-hidden">
                                         <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
                                             <h3 className="font-semibold text-slate-700 text-sm">Real-time Transcript</h3>
                                             <div className="flex items-center gap-2 md:gap-3">
@@ -1228,7 +1229,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                                                         className="relative"
                                                     >
                                                         <div className="absolute inset-0 bg-blue-500 rounded-full blur-3xl opacity-20 animate-pulse" />
-                                                        <div className="w-28 h-28 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-full flex items-center justify-center shadow-2xl relative z-10">
+                                                        <div className="w-28 h-28 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl relative z-10">
                                                             <Activity className="w-14 h-14 text-white drop-shadow-lg" />
                                                         </div>
                                                     </motion.div>
@@ -1327,7 +1328,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                                     </section>
 
                                     <section className="w-full md:w-80 flex flex-col gap-6 shrink-0">
-                                        <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm flex flex-col items-center justify-center space-y-8 relative overflow-hidden">
+                                        <div className="bg-white rounded-2xl border-2 border-ink p-8 shadow-sm flex flex-col items-center justify-center space-y-8 relative overflow-hidden">
                                             <div className="absolute top-0 right-0 p-4 opacity-5">
                                                 <Activity className="w-24 h-24" />
                                             </div>
@@ -1405,7 +1406,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                                             </div>
                                         </div>
 
-                                        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-xl shadow-blue-100">
+                                        <div className="bg-blue-600 rounded-2xl p-6 text-white shadow-xl shadow-blue-100">
                                             <h3 className="text-xs font-bold text-white/60 uppercase tracking-widest mb-4">Patient Guidelines</h3>
                                             <ul className="text-xs space-y-4">
                                                 <li className="flex gap-3">
@@ -1450,7 +1451,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                             exit={{ opacity: 0, x: -10 }}
                             className="flex-1 flex flex-col min-w-0 min-h-0 bg-white z-10"
                         >
-                            <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-6 flex items-center justify-between shrink-0 sticky top-0">
+                            <header className="bg-white/80 backdrop-blur-md border-b-2 border-ink px-8 py-6 flex items-center justify-between shrink-0 sticky top-0">
                                 <div>
                                     <h2 className="text-2xl font-bold text-slate-800">Reports History</h2>
                                     <p className="text-sm text-slate-500">Access and manage your clinical triage assessments</p>
@@ -1490,7 +1491,7 @@ DISCLAIMER: This report is AI-generated for informational purposes and does not 
                                         {allReports.map((record) => (
                                             <div
                                                 key={record.id}
-                                                className="bg-white rounded-3xl border border-slate-200 p-6 hover:shadow-xl hover:shadow-slate-200/50 transition-all group relative overflow-hidden flex flex-col"
+                                                className="bg-white rounded-3xl border-2 border-ink p-6 hover:shadow-xl hover:shadow-slate-200/50 transition-all group relative overflow-hidden flex flex-col"
                                             >
                                                 <div className={`absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity`}>
                                                     <Activity className="w-20 h-20" />

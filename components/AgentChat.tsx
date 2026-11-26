@@ -335,9 +335,9 @@ const AgentChat: React.FC<AgentChatProps> = ({ userId = 'anonymous' }) => {
 
     // ── Render ────────────────────────────────────────────────────────────────
     return (
-        <div className="flex flex-col h-full bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="flex flex-col h-full bg-white rounded-3xl border-2 border-ink shadow-sm overflow-hidden">
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 text-white shrink-0">
+            <div className="bg-blue-600 p-4 text-white shrink-0">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -387,7 +387,7 @@ const AgentChat: React.FC<AgentChatProps> = ({ userId = 'anonymous' }) => {
                 {/* Welcome state */}
                 {messages.length === 0 && (
                     <div className="flex flex-col items-center justify-center h-full py-12 gap-6">
-                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-100">
+                        <div className="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-100">
                             <Stethoscope className="w-8 h-8 text-white" />
                         </div>
                         <div className="text-center max-w-sm">
@@ -473,7 +473,7 @@ const AgentChat: React.FC<AgentChatProps> = ({ userId = 'anonymous' }) => {
                                         ? 'bg-blue-600 text-white rounded-br-md'
                                         : message.isEmergency
                                         ? 'bg-red-50 border-2 border-red-300 text-red-900 rounded-bl-md shadow-sm'
-                                        : 'bg-white border border-slate-200 text-slate-700 rounded-bl-md shadow-sm'
+                                        : 'bg-white border-2 border-ink text-slate-700 rounded-bl-md shadow-sm'
                                 }`}>
                                     {message.isEmergency && (
                                         <div className="flex items-center gap-1.5 mb-2 text-red-700 font-bold text-xs uppercase tracking-wide">
@@ -553,7 +553,7 @@ const AgentChat: React.FC<AgentChatProps> = ({ userId = 'anonymous' }) => {
             )}
 
             {/* Input bar */}
-            <div className="p-4 border-t border-slate-200 bg-white shrink-0">
+            <div className="p-4 border-t-2 border-ink bg-white shrink-0">
                 <div className="flex gap-2">
                     {/* Image attach */}
                     <button

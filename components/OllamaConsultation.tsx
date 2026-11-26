@@ -261,14 +261,14 @@ const OllamaConsultation: React.FC<OllamaConsultationProps> = ({ onEndSession })
 
   // ── RENDER ─────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 rounded-2xl overflow-hidden">
+    <div className="flex flex-col h-full bg-slate-950 rounded-2xl overflow-hidden">
 
       {/* ── HEADER ─────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.06] bg-black/30 flex-shrink-0">
         <div className="flex items-center gap-2.5">
           <div className={`w-2 h-2 rounded-full ${ollamaStatus?.available ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
           <span className="text-white font-bold text-sm">Local AI Mode</span>
-          <span className="px-2 py-0.5 bg-violet-500/20 text-violet-300 text-[10px] font-bold rounded-full border border-violet-500/20 tracking-wider">
+          <span className="px-2 py-0.5 bg-brand-500/20 text-brand-300 text-[10px] font-bold rounded-full border border-brand-500/20 tracking-wider">
             🦙 Llama 3
           </span>
         </div>
@@ -289,7 +289,7 @@ const OllamaConsultation: React.FC<OllamaConsultationProps> = ({ onEndSession })
 
       {/* ── 3D ROBOT — full width, fixed 300px stage ───────────────────────── */}
       <div className="relative w-full flex-shrink-0 border-b border-white/[0.06]" style={{ height: 300 }}>
-        <div className="absolute inset-0 bg-gradient-to-b from-indigo-950/40 via-transparent to-transparent pointer-events-none z-10" />
+        <div className="absolute inset-0 bg-indigo-950/40 pointer-events-none z-10" />
         <RobotCharacter3D state={characterState} volume={lipVolume} />
       </div>
 
@@ -353,11 +353,11 @@ const OllamaConsultation: React.FC<OllamaConsultationProps> = ({ onEndSession })
 
           {streamingText && (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-start">
-              <div className="max-w-[88%] rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm leading-relaxed bg-violet-500/10 text-slate-200 border border-violet-500/20">
+              <div className="max-w-[88%] rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm leading-relaxed bg-brand-500/10 text-slate-200 border border-brand-500/20">
                 {streamingText}
-                <span className="inline-block w-0.5 h-3.5 ml-1 bg-violet-400 rounded-full align-middle animate-pulse" />
+                <span className="inline-block w-0.5 h-3.5 ml-1 bg-brand-400 rounded-full align-middle animate-pulse" />
               </div>
-              <span className="text-[10px] text-violet-400/70 mt-1 px-1">Sage AI · responding...</span>
+              <span className="text-[10px] text-brand-400/70 mt-1 px-1">Sage AI · responding...</span>
             </motion.div>
           )}
 
@@ -376,7 +376,7 @@ const OllamaConsultation: React.FC<OllamaConsultationProps> = ({ onEndSession })
           {sessionState === 'ready' && (
             <div className="flex flex-col items-center gap-2">
               <motion.button onClick={startListening} whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.93 }}
-                className="relative w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-xl shadow-blue-900/50">
+                className="relative w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center shadow-xl shadow-blue-900/50">
                 <div className="absolute inset-0 rounded-full bg-blue-400/20 animate-ping" />
                 <Mic className="w-7 h-7 text-white relative z-10" />
               </motion.button>
@@ -396,10 +396,10 @@ const OllamaConsultation: React.FC<OllamaConsultationProps> = ({ onEndSession })
           )}
           {sessionState === 'thinking' && (
             <div className="flex flex-col items-center gap-2">
-              <div className="w-16 h-16 rounded-full bg-violet-600/20 border border-violet-500/30 flex items-center justify-center">
-                <Loader2 className="w-7 h-7 text-violet-300 animate-spin" />
+              <div className="w-16 h-16 rounded-full bg-brand-600/20 border border-brand-500/30 flex items-center justify-center">
+                <Loader2 className="w-7 h-7 text-brand-300 animate-spin" />
               </div>
-              <span className="text-[10px] text-violet-300 font-bold">Processing…</span>
+              <span className="text-[10px] text-brand-300 font-bold">Processing…</span>
             </div>
           )}
           {sessionState === 'speaking' && (
