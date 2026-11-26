@@ -15,7 +15,7 @@ Newest first. Every session adds an entry: **what changed · what is unverified/
 **Unverified / known**
 - Views were seen at ~440px and ~800px wide, not systematically at every size; no signed-in session (Clerk) was used, so user-specific data states (reports list with data, memory card) are unseen.
 - Hospital Locator showed "Oops! Something went wrong" without a Maps key in the preview env; the key was revoked, so a new restricted key is needed in `.env.local` (`VITE_GOOGLE_MAPS_API_KEY`).
-- No `gh` CLI on this machine: PRs are opened/merged through the Claude desktop app or the GitHub site. `winget install GitHub.cli` then `gh auth login` would let Claude do it from the terminal.
+- `gh` CLI is now installed (Chocolatey) and logged in as sujaljadhav14. Claude's shell may not have it on PATH: use `"/c/Program Files/GitHub CLI/gh.exe"`. PRs #1 (port 5173) and #2 (restyle) were opened and merged with it.
 
 **Next:** hand-polish views listed in ROADMAP P1, split `Dashboard.tsx`, Vitest + vignette set for the rules engine.
 
