@@ -228,10 +228,25 @@ export function matchSymptoms(userSymptoms: string[]): Map<string, {
 // CONDITION SCORING
 // ============================================
 
-const RISK_SCORE_MODIFIER: Record<string, number> = {
+/**
+ * Ranking weights. Ranking answers "which condition FITS these symptoms best?".
+ * How dangerous a condition is must NOT push it up the list (that made a sore throat
+ * rank malaria first). Danger is handled separately: the overall urgency is the highest
+ * risk among the top matches, so dangerous conditions still raise urgency.
+ * Risk is only a small tie-breaker here.
+ */
+const RISK_TIEBREAK: Record<string, number> = {
     'low': 0,
-    'moderate': 1,
-    'high': 3
+    'moderate': 0.25,
+    'high': 0.5
+};
+
+const PREVALENCE_WEIGHT: Record<string, number> = {
+    'very_common': 1.5,
+    'common': 0.5,
+    'moderate': 0,
+    'regional': 0,
+    'rare': -2
 };
 
 /**
@@ -254,8 +269,11 @@ export function scoreConditions(
         const keySymptomCount = match.isKeySymptom.filter(Boolean).length;
         score += keySymptomCount * 2;
 
-        // Risk modifier
-        score += RISK_SCORE_MODIFIER[conditionData.riskLevel] || 0;
+        // How common the condition is (a rare condition should not outrank a common one on thin evidence)
+        score += PREVALENCE_WEIGHT[conditionData.prevalence] ?? 0;
+
+        // Tiny tie-breaker toward the more serious condition
+        score += RISK_TIEBREAK[conditionData.riskLevel] ?? 0;
 
         // Symptom coverage bonus (if user has many of condition's symptoms)
         const coverageRatio = match.matchedSymptoms.length / conditionData.commonSymptoms.length;
@@ -263,11 +281,12 @@ export function scoreConditions(
             score += 2;
         }
 
-        // Determine confidence
+        // Determine confidence from how much of the condition's picture the user matches.
+        // One shared symptom (e.g. just "fever") is never more than "possible".
         let confidence: 'possible' | 'likely' | 'very_likely' = 'possible';
-        if (match.matchedSymptoms.length >= 3 && keySymptomCount >= 1) {
+        if (match.matchedSymptoms.length >= 3 && keySymptomCount >= 1 && coverageRatio >= 0.5) {
             confidence = 'very_likely';
-        } else if (match.matchedSymptoms.length >= 2 || keySymptomCount >= 1) {
+        } else if (match.matchedSymptoms.length >= 2 && coverageRatio >= 0.5) {
             confidence = 'likely';
         }
 
@@ -383,7 +402,7 @@ function generateNextSteps(
 
     if (riskLevel === 'emergency') {
         steps.push('Seek immediate emergency medical care');
-        steps.push('Call 911 or go to the nearest emergency room');
+        steps.push('Call 112 or 108 (ambulance), or go to the nearest emergency room');
         steps.push('Do not wait to see if symptoms improve');
     } else if (riskLevel === 'high' || hasHighRiskCondition) {
         steps.push('Schedule an appointment with a doctor within 24-48 hours');
@@ -408,7 +427,7 @@ function generateNextSteps(
 // MAIN ASSESSMENT FUNCTION
 // ============================================
 
-const DISCLAIMER = `⚠️ IMPORTANT: This assessment is for informational purposes only and does NOT constitute a medical diagnosis. Always consult a qualified healthcare professional for proper diagnosis and treatment. In case of emergency, call 911 immediately.`;
+const DISCLAIMER = `⚠️ IMPORTANT: This assessment is for informational purposes only and does NOT constitute a medical diagnosis. Always consult a qualified healthcare professional for proper diagnosis and treatment. In an emergency, call 112 (or 108 for an ambulance) immediately.`;
 
 /**
  * Main function to run the health assessment
