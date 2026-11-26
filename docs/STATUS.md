@@ -2,6 +2,23 @@
 
 Newest first. Every session adds an entry: **what changed · what is unverified/broken · what is next.**
 
+## 2026-11-26 — Session 3: restyle remaining views, PR workflow
+
+**Changed**
+- Bulk restyle script over Dashboard views, ImageAnalysis, HospitalLocator, NearbyFacilities cards, AgentChat, NotificationPanel, OfflineAssessmentView, SymptomInput, OllamaConsultation, LocationPrompt: gradients became solid brand colours, decorative blur blobs hidden, cards use ink borders, section borders thicker, purple/violet mapped to brand teal.
+- Dashboard: home header no longer repeats the logo on desktop, sidebar label "Self-check" (old label wrapped), greeting emoji removed.
+- Vite dev port moved to 5173 (`vite.config.ts`, `.claude/launch.json`, `CLAUDE.md`).
+- User revoked the leaked API keys.
+
+**Verified:** `tsc` clean, `npm run build` OK. Viewed Home, Reports, Image Analysis, Hospital Locator and Agent Chat in a browser through a *temporary unguarded preview route* (removed again, never committed). Consultation (voice) only checked at narrow width; it still has the legacy Ollama/Gemini tabs.
+
+**Unverified / known**
+- Views were seen at ~440px and ~800px wide, not systematically at every size; no signed-in session (Clerk) was used, so user-specific data states (reports list with data, memory card) are unseen.
+- Hospital Locator showed "Oops! Something went wrong" without a Maps key in the preview env; the key was revoked, so a new restricted key is needed in `.env.local` (`VITE_GOOGLE_MAPS_API_KEY`).
+- No `gh` CLI on this machine: PRs are opened/merged through the Claude desktop app or the GitHub site. `winget install GitHub.cli` then `gh auth login` would let Claude do it from the terminal.
+
+**Next:** hand-polish views listed in ROADMAP P1, split `Dashboard.tsx`, Vitest + vignette set for the rules engine.
+
 ## 2026-11-26 — Session 2: docs, hardening, redesign
 
 **Changed**

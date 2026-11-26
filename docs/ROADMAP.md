@@ -3,7 +3,7 @@
 Priority order. Tick items when done and move a one-line note into `docs/STATUS.md`. Voice agent is **postponed** (listed at the bottom).
 
 ## P0 — Security & hygiene
-- [ ] **Revoke/restrict the leaked Google Maps key** in Google Cloud (user action); rotate any other key that was ever committed; confirm Gemini key deleted. Consider scrubbing history (`git filter-repo`) only after rotating
+- [x] Leaked keys revoked by the user (2026-11-26). Optional: scrub history with `git filter-repo` (not needed once keys are dead)
 - [x] Lock down `/api/send-report` (CORS allowlist, rate limit, size caps)
 - [x] Fix `server/index.js` SDK usage (`@google/genai`), model via `GEMINI_MODEL` env
 - [x] Stop bundling `GEMINI_API_KEY` via `vite.config.ts` `define`
@@ -20,7 +20,8 @@ Priority order. Tick items when done and move a one-line note into `docs/STATUS.
 - [x] Dashboard shell (sidebar, banner, home) on new theme; Dashboard lazy-loaded
 - [ ] **Sign in and review every Dashboard view in a browser** (never visually checked) and fix breakage
 - [ ] Split `Dashboard.tsx` (1,800+ lines) into `views/*` (Home, Consultation, Reports, …) and a shell component
-- [ ] Restyle: Consultation, Reports, Image Analysis, Hospital Locator, Agent Chat, Notification panel, report modal; remove leftover gradients/blurs
+- [x] Bulk restyle of remaining views: gradients -> solid brand, decorative blur blobs hidden, cards on ink borders, purple -> brand teal (session 3)
+- [ ] Hand-polish each authenticated view (spacing, empty states, report modal, Consultation voice UI) now that the bulk pass is done
 - [ ] Offline `views/OfflineAssessmentView` + `SymptomInput` restyle (structured flow)
 - [ ] Mobile pass (375px) for every authenticated view; keyboard/focus/aria pass
 - [ ] Reduce Dashboard chunk (2.2 MB): lazy-load three.js character, maps, jsPDF/html2canvas per view
@@ -28,7 +29,7 @@ Priority order. Tick items when done and move a one-line note into `docs/STATUS.
 - [ ] PWA: manifest + service worker so the offline checker truly works offline
 - [ ] Remove duplicate/unused components (`NearbyFacilitiesCardSimple`, Ollama/3D character if not shipping)
 - [ ] Landing: clinic pilot waitlist form (section 06 currently has no CTA), Privacy/Terms pages, real social proof only when it exists
-- [ ] Move Vite off port 3000 (collides with other local projects)
+- [x] Moved Vite to port 5173 (3000 collided with another local project)
 
 ## P1 — Triage quality & safety
 - [x] Ranking by fit (not danger) + prevalence weighting + calibrated confidence
