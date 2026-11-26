@@ -1,54 +1,15 @@
-# 📖 How to Run SymptomSage AI
+# Setup guide
 
-Complete setup guide for the whole project: **frontend + Node backend + Python agent + Docker**.
+How to run SymptomSage on your own computer. Start with the basic version; add the extras only if you need them.
 
-> First time here? Skim [Project Architecture](#-architecture-overview), then jump to [Quick Start](#-quick-start).
+## What you need
 
----
+- [Node.js](https://nodejs.org) 18 or newer
+- Git
+- *Optional:* Python 3.12 and [uv](https://docs.astral.sh/uv/getting-started/installation/) for the AI assistant service
+- *Optional:* Docker, to run everything with one command
 
-## 📋 Prerequisites
-
-| Tool | Version | Why |
-|---|---|---|
-| **Node.js** | ≥ 18 | Frontend (Vite) + backend (Express) |
-| **npm** | ≥ 9 | JS dependency management |
-| **Python** | 3.12 | Agent service |
-| **uv** | ≥ 0.4 | Python env + deps ([install](https://docs.astral.sh/uv/getting-started/installation/)) |
-| **Git** | any | Clone the repo |
-| **Docker** *(optional)* | any | One-command full-stack run |
-
-**Accounts / API keys you'll need:**
-- [Google Gemini API key](https://aistudio.google.com/app/apikey) — required for AI
-- [Clerk](https://clerk.com/) app — auth (publishable key)
-- [Supabase](https://supabase.com/) project — database (URL + anon key)
-- [Google Maps API key](https://console.cloud.google.com/) — Places API (hospital search)
-- SMTP credentials (e.g. Gmail app password) — email reports
-- [Ollama](https://ollama.com/) *(optional)* — local/offline LLM fallback
-
----
-
-## 🏗️ Architecture Overview
-
-```
-symptomsage-ai/
-├── components/      React UI (Dashboard, ImageAnalysis, 3D character…)
-├── server/          Node/Express — /api/chat/summarize, /api/analyze-image, /api/send-report
-├── services/agent/  Python LangGraph agent — /api/agent/chat (+ stream)
-├── utils/           assessmentEngine, supabase, places, ollama…
-├── data/            symptoms.json, conditions.json, tests.json, redflags.json
-└── Docker           docker-compose.yml orchestrates all three services
-```
-
-Three services talk to each other:
-1. **Frontend (Vite, :5173)** — the React app.
-2. **Node backend (:3001)** — email + legacy Gemini endpoints.
-3. **Agent (:8000)** — *optional but recommended* — the LangGraph agent.
-
----
-
-## 🚀 Quick Start (3 terminals, local dev)
-
-### Step 1 — Clone & install
+## 1. Get the code
 
 ```bash
 git clone https://github.com/sujaljadhav14/SymptomsageAI.git
@@ -56,127 +17,80 @@ cd SymptomsageAI
 npm install
 ```
 
-### Step 2 — Configure environment variables
+## 2. Add your keys
 
 ```bash
-# Frontend + shared (loaded by Vite)
 cp .env.example .env.local
-
-# Node backend (loads from .env.local automatically, but you can also set explicitly)
-cp .env.example server/.env
 ```
 
-Now **edit `.env.local`** and fill in real values (see the table below).
+Open `.env.local` and fill in what you have. Each feature only needs its own keys, so you can start with none.
 
-| Variable | Where it's used | Required? |
-|---|---|---|
-| `VITE_CLERK_PUBLISHABLE_KEY` | Frontend auth | ✅ |
-| `VITE_SUPABASE_URL` | Frontend (DB) | ✅ |
-| `VITE_SUPABASE_ANON_KEY` | Frontend (DB) | ✅ |
-| `VITE_GOOGLE_MAPS_API_KEY` | Frontend (Maps) | ✅ for hospital search |
-| `VITE_GEMINI_API_KEY` | Frontend (Live Voice) | ✅ for voice mode |
-| `VITE_API_BASE_URL` | Frontend → Node backend | defaults to `http://localhost:3001` |
-| `GEMINI_API_KEY` | Node + Agent | ✅ |
-| `SMTP_HOST` / `SMTP_USER` / `SMTP_PASS` / `SMTP_PORT` | Node (email) | ✅ for email |
-| `SERVER_PORT` | Node | defaults to `3001` |
+| Key | What it turns on |
+|---|---|
+| `VITE_CLERK_PUBLISHABLE_KEY` | Sign-in (needed to open the dashboard) |
+| `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | Saving reports and memory |
+| `VITE_GOOGLE_MAPS_API_KEY` | Hospital and clinic search |
+| `VITE_GEMINI_API_KEY` | Voice consultation (experimental) |
+| `GEMINI_API_KEY`, `GEMINI_MODEL` | Report summaries and photo analysis (server) |
+| `CLERK_SECRET_KEY` | Lets the server check that a user is signed in (required in production) |
+| `ALLOWED_ORIGINS` | Websites allowed to call the server (default: local ones) |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | Emailing reports |
+| `VITE_API_BASE_URL` | Where the server lives (default `http://localhost:3001`) |
 
-### Step 3 — Run the frontend
+Never commit `.env.local`. It is already ignored by git. If a key ever leaks, delete it in the provider's dashboard and make a new one.
+
+## 3. Start the app
+
+Open two terminals in the project folder.
 
 ```bash
-npm run dev          # http://localhost:5173
+npm run dev       # the website  -> http://localhost:5173
 ```
-
-### Step 4 — Run the Node backend (second terminal)
 
 ```bash
-npm run server       # http://localhost:3001
+npm run server    # the server   -> http://localhost:3001
 ```
 
-✅ At this point the **core app works**: chat triage, image analysis, email, maps, offline engine.
+The landing page and the free symptom check work with just the first one. The server is needed for email, report summaries and photo analysis.
 
-### Step 5 *(optional but recommended)* — Run the LangGraph agent (third terminal)
+## 4. Optional: the AI assistant service
+
+This is an experimental Python service. Skip it unless you're working on it.
 
 ```bash
 cd services/agent
-cp .env.example .env             # fill in GEMINI_API_KEY etc.
-uv venv --python 3.12
-uv sync                          # installs langgraph, langchain, fastapi…
+cp .env.example .env     # add your model settings
+uv sync
 uv run uvicorn app.main:app --reload --port 8000
 ```
 
-Verify:
-```bash
-curl http://localhost:8000/api/agent/health
-# → {"status":"ok","service":"symptomsage-agent"}
-```
+Check it is alive: open http://localhost:8000/api/agent/health. To use it from the website, add `VITE_AGENT_API_URL=http://localhost:8000` to `.env.local`. More detail is in [services/agent/README.md](../services/agent/README.md).
 
-Try a triage turn:
-```bash
-curl -X POST http://localhost:8000/api/agent/chat \
-  -H "Content-Type: application/json" \
-  -d '{"user_id":"test","message":"I have chest pain and shortness of breath"}'
-```
+Run its tests with `uv run pytest -v`.
 
-To use the agent from the frontend, set in `.env.local`:
-```
-VITE_AGENT_API_URL=http://localhost:8000
-```
-
----
-
-## 🧪 Run the agent tests
-
-```bash
-cd services/agent
-uv run pytest -v
-```
-
-Expected: `9 passed`. The emergency red-flag regression (`test_graph_emergency_path_sets_flags`) **must always pass** — it guarantees chest-pain cases are flagged as emergencies.
-
----
-
-## 🐳 One-command full stack via Docker
+## 5. Optional: run everything with Docker
 
 ```bash
 docker compose up --build
 ```
 
-This brings up:
-- `frontend` on **:5173** (or :80 in production build)
-- `server` on **:3001**
-- `agent` on **:8000** (when the compose service is added — see below)
+Docker reads the same keys, so put them in `.env.local` first. Deploying to the internet is covered in [DEPLOYMENT.md](DEPLOYMENT.md).
 
-> Note: the compose file currently builds frontend + server. The agent service is
-> scaffolded; to add it to compose, see `services/agent/README.md`.
+## When something goes wrong
 
-Create a `.env` at the repo root for Docker (same keys as `.env.local`).
-
----
-
-## 🧭 Common Issues
-
-| Symptom | Fix |
+| What you see | What to try |
 |---|---|
-| `Failed to fetch` in chat | Node backend not running on :3001, or `VITE_API_BASE_URL` wrong |
-| Auth loop on `/app` | `VITE_CLERK_PUBLISHABLE_KEY` missing/invalid |
-| Maps don't load | `VITE_GOOGLE_MAPS_API_KEY` missing or Places API not enabled |
-| Agent: `No LLM available` | Set `GEMINI_API_KEY`, or run Ollama locally + set `LLM_PROVIDER=ollama` |
-| Email fails | SMTP creds wrong; Gmail needs an **App Password**, not your password |
-| Python: `command not found: uv` | Install uv: `pip install uv` or see [uv install](https://docs.astral.sh/uv/getting-started/installation/) |
+| "Failed to fetch" in the app | The server isn't running, or `VITE_API_BASE_URL` is wrong |
+| Sign-in keeps looping | `VITE_CLERK_PUBLISHABLE_KEY` is missing or wrong |
+| Maps don't load | Add a Maps key and turn on the Places API for it |
+| Server says "not configured" (503) | Add the matching key: `GEMINI_API_KEY` for AI, the `SMTP_*` keys for email |
+| Email fails | Gmail needs an *app password*, not your normal password |
+| Port already in use | Another program is using it. Stop it, or change the port in `vite.config.ts` |
+| `uv: command not found` | Install uv from the link above |
 
----
+## Checking your work
 
-## 🔐 Security notes
-
-- **Never commit `.env.local` / `.env`.** Both are gitignored.
-- `.env.example` contains only placeholders — safe to share publicly.
-- The agent does **not** store uploaded images; they're processed in-memory by Gemini Vision.
-- Patient data is keyed by Clerk `userId`, isolated per user in Supabase.
-
----
-
-## 📂 Service-specific docs
-
-- Agent (LangGraph): [`services/agent/README.md`](./services/agent/README.md)
-- Deployment (GCP): [`GCP_DEPLOYMENT.md`](./GCP_DEPLOYMENT.md)
-- Full feature reference: [`PROJECT_FEATURES.md`](./PROJECT_FEATURES.md)
+```bash
+npx tsc --noEmit    # catches type mistakes
+npm run build       # makes sure the production build works
+```
