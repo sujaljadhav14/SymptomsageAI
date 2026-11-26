@@ -37,4 +37,4 @@ Regulatory notes (not legal advice): keep it triage/navigation not diagnosis; DP
 
 ## 4. Old docs
 
-`README.md`, `DOCUMENTATION.md`, `PROJECT_FEATURES.md`, `RUN.md`, `GCP_DEPLOYMENT.md`, `AGENT.md` (the anime-character feature) predate this work and partly describe the old Gemini-only design. Treat `CLAUDE.md` + `docs/` as authoritative.
+The old notes (`AGENT.md`, `PROJECT_FEATURES.md`, `DOCUMENTATION.md`, `metadata.json`) and the unused `LocationPrompt.tsx` were moved to a local, git-ignored `archive/` folder on 2026-11-26 (still in git history). `README.md`, `docs/SETUP.md` and `docs/DEPLOYMENT.md` are current. Treat `CLAUDE.md` + `docs/` as authoritative.

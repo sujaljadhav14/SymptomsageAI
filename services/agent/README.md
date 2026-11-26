@@ -103,4 +103,4 @@ Red-flag tool tests are deterministic (no LLM). Graph-structure tests verify
 the supervisor + all 4 specialists are wired. Full LLM-driven flows are
 verified manually via the endpoints above.
 
-See the root [`RUN.md`](../../RUN.md) for the whole-project setup.
+See the root [`RUN.md`](../../docs/SETUP.md) for the whole-project setup.

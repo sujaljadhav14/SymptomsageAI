@@ -56,3 +56,7 @@ services/agent/*.json
 # Build / test output
 coverage/
 *.tsbuildinfo
+
+# Old notes and unused code kept locally for later (not part of the repo)
+archive/
+.zcode/

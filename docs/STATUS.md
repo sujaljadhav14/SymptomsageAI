@@ -2,6 +2,20 @@
 
 Newest first. Every session adds an entry: **what changed · what is unverified/broken · what is next.**
 
+## 2026-11-26 — Session 4: cleanup and README
+
+**Changed**
+- Moved stale or unused files out of the repo into a local, git-ignored `archive/` folder (kept on disk in case they are needed later): `AGENT.md`, `PROJECT_FEATURES.md`, `DOCUMENTATION.md`, `metadata.json`, `components/LocationPrompt.tsx` (nothing imported it). All remain in git history.
+- `RUN.md` -> `docs/SETUP.md` (rewritten in plain language, new env keys and port), `GCP_DEPLOYMENT.md` -> `docs/DEPLOYMENT.md`.
+- README rewritten for non-technical readers (what it does, how it works, how to try it, folder map, honest status).
+- `.gitignore`: added `archive/` and `.zcode/`.
+
+**Verified:** `tsc` clean, `npm run build` OK. Dependency scan found no unused packages.
+
+**Left alone on purpose:** leftover `VITE_SIMLI_API_KEY` in `Dockerfile`, `docker-compose.yml`, `cloudbuild.yaml` and `docs/DEPLOYMENT.md` (the avatar service is gone). Removing it from `cloudbuild.yaml` can break a Cloud Build trigger that still passes that substitution, so clean it up together with the trigger.
+
+**Next:** unchanged — hand-polish dashboard views, split `Dashboard.tsx`, tests for the rules engine.
+
 ## 2026-11-26 — Session 3: restyle remaining views, PR workflow
 
 **Changed**

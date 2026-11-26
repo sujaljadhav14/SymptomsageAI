@@ -1,137 +1,70 @@
-# 🏥 SymptomSage AI
+# SymptomSage
 
-### *The Intelligent First Responder for Modern Healthcare*
+**Tell it what you're feeling. It tells you how urgent it is and what to do next.**
 
-An AI-powered, conversational health assistant that provides early medical guidance and triage — bridging the gap between symptom onset and a professional consultation. Works with **text, voice, and medical images**, and keeps working **offline** when the network drops.
+SymptomSage is a health triage app. You describe your symptoms in plain words, and it answers one simple question: *do I need an emergency room, a doctor soon, or just rest at home?* It is built first for people in India, so emergency advice points to **112** and **108**.
 
-> ⚠️ **Disclaimer:** SymptomSage AI is for informational purposes only and does **not** constitute a medical diagnosis. Always consult a qualified healthcare professional.
-
----
-
-## ✨ Key Features
-
-| Feature | Description |
-|---|---|
-| 🎙️ **Conversational AI Triage** | Natural-language symptom chat powered by Google Gemini 2.0 Flash — generates follow-up questions, risk levels, and structured clinical reports. |
-| 🔴 **Live Voice Mode** | Real-time bidirectional audio via the Gemini Live API + WebRTC. |
-| 🧠 **Offline Expert Engine** | Fully offline, rule-based triage (`assessmentEngine.ts`) — no ML, no API. Red-flag detection, condition scoring, test suggestions. |
-| 👁️ **Medical Image Analysis** | Gemini Vision analyses rashes, wounds, and skin conditions. |
-| 📍 **Hospital & Facility Locator** | Google Maps Places API finds nearby hospitals, clinics, doctors, labs, and pharmacies — matched to recommended tests. |
-| 📋 **Clinical Report + PDF + Email** | Structured report generation with PDF export and SMTP email delivery. |
-| 🗄️ **Long-Term Patient Memory** | Per-user session history in Supabase, injected into future consultations. |
-| 🤖 **3D Character with Lip-Sync** | Anime/robot character that reacts (idle / listen / speak) in sync with TTS audio. |
-| 🔐 **Auth** | Clerk (Google OAuth + email/password). |
+> **Important:** SymptomSage gives guidance, not a medical diagnosis. It is an early-stage project and its medical rules have not yet been reviewed by a doctor. In an emergency, call 112 (ambulance: 108).
 
 ---
 
-## 🏗️ Architecture
+## What it does
 
-```
-┌──────────────────────────────────────────────────────────┐
-│  React 19 SPA (Vite + TypeScript + Tailwind)              │
-│  Dashboard · Chat · Voice · Image · Hospital · Reports    │
-└───────────────┬──────────────────────────────────────────┘
-                │
-        ┌───────┴────────┐
-        ▼                ▼
-┌──────────────┐  ┌──────────────────────┐
-│ Node/Express │  │  (Planned) Python    │
-│  server/     │  │  LangGraph agent     │
-│  • summarize │  │  services/agent/     │
-│  • image AI  │  │  • triage · vision   │
-│  • email     │  │  • memory · places   │
-└──────────────┘  └──────────────────────┘
-        │                │
-        └───────┬────────┘
-                ▼
-   Gemini 2.0 Flash · Supabase · Google Maps · SMTP
-```
+- **Free symptom check.** Type what you feel and get a clear urgency level. It runs in your browser, so it works on a slow connection and nothing you type leaves your device.
+- **Emergency signs first.** Before anything else, it looks for danger signs like chest pain or trouble breathing, using fixed rules instead of AI guesses.
+- **Four easy levels.** Every result is one of: *Emergency*, *See a doctor within 24 hours*, *See a doctor this week*, or *Home care*. Each one has its own colour.
+- **Explains itself.** You can see which symptoms led to the result and which tests a doctor may suggest.
+- **Reports.** Save a report, download it, or email it to yourself to show your doctor (needs sign-in).
+- **Photo check.** Add a photo of a rash or wound for an AI-assisted look (needs sign-in).
+- **Care nearby.** Find hospitals, clinics, labs and pharmacies near you.
+- **AI assistant.** A chat assistant that remembers your earlier visits (needs sign-in; still experimental).
 
-### Workflow
+## How it works
 
-```mermaid
-graph TD
-    A[User Symptom] --> B{Choose Mode}
-    B -- Voice/Live --> C[Gemini Live API]
-    B -- Text Chat --> D[Gemini 2.0 Flash]
-    B -- Low/No Network --> E[Offline Expert Engine]
-    B -- Medical Image --> F[Gemini Vision]
-    C --> G[Triage + Risk Assessment]
-    D --> G
-    E --> G
-    F --> G
-    G --> H{High Risk / Emergency?}
-    H -- Yes --> I[Hospital Locator + Alert]
-    H -- No --> J[Clinical Care Tips]
-    G --> K[Report: PDF / Email]
-    K --> L[Save to Supabase Memory]
-```
+1. You describe your symptoms.
+2. The app checks for emergency signs, then matches your symptoms against a table of common conditions and scores the best fits.
+3. You get an urgency level, the reasons, and a next step.
 
----
+The AI parts help with conversation, photos and summaries. The decision about how urgent something is comes from the written rules, so the answer is the same every time and easy to check.
 
-## 🛠️ Tech Stack
+## Try it on your computer
 
-| Layer | Technology |
-|---|---|
-| AI Engine | Google Gemini 2.0 Flash (`gemini-2.0-flash-exp`) |
-| Frontend | React 19 · Vite · TypeScript · Tailwind CSS |
-| Voice | WebRTC · Gemini Live API |
-| Backend (Node) | Node.js · Express · Nodemailer |
-| Agent (planned) | Python · LangGraph · LangChain · FastAPI |
-| Auth | Clerk |
-| Database | Supabase (PostgreSQL) |
-| Maps | Google Maps Places API |
-| 3D / Animation | @react-three/fiber · @react-three/drei · three · framer-motion |
-| Local LLM fallback | Ollama |
-| Infra | Docker · Google Cloud Run · Cloud Build |
-
----
-
-## 🚀 Quick Start
-
-See **[`RUN.md`](./RUN.md)** for the full step-by-step setup (frontend, backend, agent, Docker).
-
-### TL;DR
+You need [Node.js](https://nodejs.org) 18 or newer.
 
 ```bash
-# 1. Install deps
+git clone https://github.com/sujaljadhav14/SymptomsageAI.git
+cd SymptomsageAI
 npm install
-
-# 2. Configure env
-cp .env.example .env.local       # frontend
-cp .env.example server/.env      # backend
-
-# 3. Run frontend + backend (two terminals)
-npm run dev                      # Vite frontend (5173)
-npm run server                   # Express backend (3001)
-
-# 4. (Optional) Agent service — see services/agent/
+cp .env.example .env.local     # then add your own keys inside
+npm run dev                    # opens at http://localhost:5173
 ```
 
----
+The landing page and the free symptom check work without any keys. Sign-in, reports, photos, maps and email each need their own keys. The full, step-by-step guide is in [docs/SETUP.md](docs/SETUP.md).
 
-## 📂 Project Structure
+## What's in the folders
 
-```
-.
-├── components/         UI layer (Dashboard, ImageAnalysis, Hospital, 3D character…)
-│   └── assessment/     Offline symptom checker components
-├── views/              View containers (OfflineAssessmentView…)
-├── utils/              assessmentEngine, supabase, places, location, audio, ollama
-├── data/               symptoms.json, conditions.json, tests.json, redflags.json
-├── server/             Node/Express backend (summarize, image, email)
-├── services/agent/     (Planned) Python LangGraph agent service
-├── Dockerfile          Multi-stage build (frontend + node server)
-├── docker-compose.yml  Local multi-service orchestration
-└── cloudbuild.yaml     GCP Cloud Build CI/CD
-```
+| Folder | What it's for |
+|---|---|
+| `components/` | The screens and pieces you see in the app |
+| `utils/` | The symptom-checking logic and helpers |
+| `data/` | The symptom, condition, test and emergency-sign lists |
+| `server/` | A small server for email, summaries and photo analysis |
+| `services/agent/` | An experimental Python AI assistant (optional) |
+| `docs/` | Setup, deployment, roadmap and project notes |
 
----
+Built with React, TypeScript and Tailwind on the front end, Node on the back end, Clerk for sign-in and Supabase for saved data.
 
-## 🤝 Credits
+## Where the project is going
 
-Built by **Sujal Jadhav**. See commit history for contributors.
+The plan is to make triage work in Indian languages (Hindi, Marathi, Hinglish), have doctors review the medical rules, and give clinics a short patient summary before each visit. The detailed to-do list is in [docs/ROADMAP.md](docs/ROADMAP.md), and [docs/STATUS.md](docs/STATUS.md) shows what changed most recently.
 
-## 📄 License
+## More docs
 
-[MIT](./LICENSE)
+- [Setup guide](docs/SETUP.md): run everything locally
+- [Deployment](docs/DEPLOYMENT.md): put it online with Google Cloud
+- [Design system](docs/DESIGN_SYSTEM.md): colours, fonts and style rules
+- [Project context](docs/CONTEXT.md): decisions and background
+
+## License
+
+MIT. See [LICENSE](LICENSE).
