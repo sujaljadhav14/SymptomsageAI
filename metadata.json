@@ -1,7 +1,0 @@
-{
-  "name": "SymptomSage AI",
-  "description": "A conversational medical triage assistant powered by Gemini 2.5 Native Audio. Describe your symptoms naturally through voice for an initial assessment and guidance.",
-  "requestFramePermissions": [
-    "microphone"
-  ]
-}
