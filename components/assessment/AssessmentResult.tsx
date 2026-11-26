@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { AssessmentResult as AssessmentResultType, ConditionMatch, TestSuggestion } from '../../types';
 import NearbyFacilitiesCard from '../NearbyFacilitiesCard';
+import { urgencyFor } from '../../utils/urgency';
 
 interface AssessmentResultProps {
     result: AssessmentResultType;
@@ -21,35 +22,16 @@ interface AssessmentResultProps {
 }
 
 const getRiskBadge = (riskLevel: string) => {
+    const u = urgencyFor(riskLevel);
     switch (riskLevel) {
         case 'emergency':
-            return {
-                bg: 'bg-red-600',
-                text: 'text-white',
-                icon: Phone,
-                label: 'EMERGENCY'
-            };
+            return { bg: 'bg-signal', text: 'text-white', icon: Phone, label: 'EMERGENCY', action: u.action };
         case 'high':
-            return {
-                bg: 'bg-orange-500',
-                text: 'text-white',
-                icon: AlertTriangle,
-                label: 'HIGH RISK'
-            };
+            return { bg: 'bg-orange-400', text: 'text-ink', icon: AlertTriangle, label: 'SEE A DOCTOR WITHIN 24H', action: u.action };
         case 'moderate':
-            return {
-                bg: 'bg-amber-500',
-                text: 'text-white',
-                icon: AlertCircle,
-                label: 'MODERATE'
-            };
+            return { bg: 'bg-caution', text: 'text-ink', icon: AlertCircle, label: 'SEE A DOCTOR THIS WEEK', action: u.action };
         default:
-            return {
-                bg: 'bg-blue-600',
-                text: 'text-white',
-                icon: CheckCircle,
-                label: 'LOW RISK'
-            };
+            return { bg: 'bg-leaf', text: 'text-ink', icon: CheckCircle, label: 'HOME CARE FOR NOW', action: u.action };
     }
 };
 
@@ -77,9 +59,9 @@ const getCostBadge = (cost: string) => {
 
 const ConditionCard: React.FC<{ condition: ConditionMatch; rank: number }> = ({ condition, rank }) => {
     const riskColors = {
-        'high': 'border-l-orange-500 bg-orange-50/50',
-        'moderate': 'border-l-amber-500 bg-amber-50/50',
-        'low': 'border-l-blue-500 bg-blue-50/50'
+        'high': 'border-l-orange-500 bg-orange-50',
+        'moderate': 'border-l-caution bg-caution-soft',
+        'low': 'border-l-brand-600 bg-brand-50'
     };
 
     return (
@@ -175,12 +157,13 @@ ${result.disclaimer}
         <div className="space-y-6">
             {/* Emergency Banner (if applicable) */}
             {result.isEmergency && (
-                <div className="bg-red-600 text-white p-6 rounded-2xl animate-pulse">
+                <div className="bg-signal text-white p-6 rounded-2xl border-2 border-ink shadow-hard">
                     <div className="flex items-center gap-3 mb-3">
                         <Phone className="w-8 h-8" />
                         <h2 className="text-2xl font-bold">SEEK IMMEDIATE MEDICAL CARE</h2>
                     </div>
                     <p className="text-white/90 mb-4">{result.reasoning[0]}</p>
+                    <a href="tel:112" className="btn !bg-white !text-ink mb-4 shadow-hard"><Phone className="w-4 h-4" /> Call 112 now</a>
                     <div className="bg-white/20 rounded-xl p-4">
                         <p className="font-semibold mb-2">Emergency Instructions:</p>
                         <ul className="space-y-1 text-sm">
@@ -199,15 +182,16 @@ ${result.disclaimer}
 
             {/* Risk Level Badge */}
             {!result.isEmergency && (
-                <div className={`${riskBadge.bg} ${riskBadge.text} p-6 rounded-2xl`}>
+                <div className={`${riskBadge.bg} ${riskBadge.text} p-6 rounded-2xl border-2 border-ink shadow-hard`}>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
                                 <RiskIcon className="w-6 h-6" />
                             </div>
                             <div>
-                                <p className="text-xs opacity-80 uppercase tracking-wider font-medium">Assessment Result</p>
-                                <h2 className="text-2xl font-bold">{riskBadge.label}</h2>
+                                <p className="label-mono !text-current opacity-75">Urgency</p>
+                                <h2 className="font-display text-2xl font-extrabold leading-tight">{riskBadge.label}</h2>
+                                <p className="text-sm font-semibold opacity-80">{riskBadge.action}</p>
                             </div>
                         </div>
                         <div className="text-right text-xs opacity-70">
@@ -220,7 +204,7 @@ ${result.disclaimer}
 
             {/* Possible Conditions */}
             {result.possibleConditions.length > 0 && (
-                <div className="bg-white rounded-2xl border border-slate-200 p-6">
+                <div className="card p-6">
                     <div className="flex items-center gap-2 mb-4">
                         <Activity className="w-5 h-5 text-slate-600" />
                         <h3 className="font-bold text-slate-800">Possible Conditions</h3>
@@ -234,7 +218,7 @@ ${result.disclaimer}
             )}
 
             {/* Reasoning */}
-            <div className="bg-blue-50 rounded-2xl border border-blue-100 p-6">
+            <div className="bg-brand-50 rounded-2xl border-2 border-ink p-6">
                 <div className="flex items-center gap-2 mb-4">
                     <Lightbulb className="w-5 h-5 text-blue-600" />
                     <h3 className="font-bold text-blue-800">Why These Results?</h3>
@@ -251,7 +235,7 @@ ${result.disclaimer}
 
             {/* Test Recommendations */}
             {result.testSuggestions.length > 0 && (
-                <div className="bg-white rounded-2xl border border-slate-200 p-6">
+                <div className="card p-6">
                     <div className="flex items-center gap-2 mb-4">
                         <Beaker className="w-5 h-5 text-slate-600" />
                         <h3 className="font-bold text-slate-800">Recommended Tests</h3>
@@ -266,7 +250,7 @@ ${result.disclaimer}
 
             {/* Next Steps */}
             {!result.isEmergency && (
-                <div className="bg-blue-50 rounded-2xl border border-blue-100 p-6">
+                <div className="bg-brand-50 rounded-2xl border-2 border-ink p-6">
                     <div className="flex items-center gap-2 mb-4">
                         <Shield className="w-5 h-5 text-blue-600" />
                         <h3 className="font-bold text-blue-800">Recommended Next Steps</h3>
@@ -294,7 +278,7 @@ ${result.disclaimer}
             )}
 
             {/* Disclaimer */}
-            <div className="bg-amber-50 rounded-2xl border border-amber-200 p-4">
+            <div className="bg-caution-soft rounded-2xl border-2 border-ink p-4">
                 <div className="flex items-start gap-3">
                     <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                     <p className="text-xs text-amber-800 leading-relaxed">
@@ -307,14 +291,14 @@ ${result.disclaimer}
             <div className="flex gap-3">
                 <button
                     onClick={onReset}
-                    className="flex-1 py-3 bg-white border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+                    className="flex-1 btn-ghost"
                 >
                     <RefreshCw className="w-4 h-4" />
                     New Assessment
                 </button>
                 <button
                     onClick={handleDownload}
-                    className="flex-1 py-3 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-700 transition-all flex items-center justify-center gap-2"
+                    className="flex-1 btn-dark"
                 >
                     <Download className="w-4 h-4" />
                     Download Report
