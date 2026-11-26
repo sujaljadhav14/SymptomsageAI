@@ -6,7 +6,7 @@ import react from '@vitejs/plugin-react';
 // Only VITE_* variables are exposed to the client.
 export default defineConfig({
   server: {
-    port: 3000,
+    port: 5173,
     host: '0.0.0.0',
   },
   plugins: [react()],
