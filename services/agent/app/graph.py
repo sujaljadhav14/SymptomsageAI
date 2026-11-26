@@ -1,17 +1,17 @@
 """The Sage multi-agent graph — supervisor + 4 specialist sub-agents.
 
 Architecture:
-    user → supervisor → ┌─ emergency_agent  (red flags + hospitals)
-                        ├─ triage_agent     (full assessment + follow-ups)
-                        ├─ vision_agent     (image analysis)
-                        └─ general_agent    (FAQ / help)
+    user → supervisor → ┌─ emergency_agent  (red flags + hospitals + email)
+                        ├─ triage_agent     (recall → follow-up → report → save)
+                        ├─ vision_agent     (image analysis + report)
+                        └─ general_agent    (FAQ / help, no tools)
 
-Each specialist is a `create_react_agent` with its OWN tool set and a REAL
-ReAct loop — the LLM dynamically decides which tools to call. The supervisor
-treats each specialist as a "handoff" tool.
+Each specialist is a ``create_react_agent`` with its OWN tool set and a real
+ReAct loop — the LLM dynamically decides which tools to call and when. The
+supervisor treats each specialist as a "handoff" tool.
 
 Multi-turn memory is enabled by the MemorySaver checkpointer (keyed by
-`thread_id` = session_id at runtime).
+``thread_id`` = session_id at runtime).
 """
 from __future__ import annotations
 
@@ -21,6 +21,7 @@ from langgraph.prebuilt import create_react_agent
 from langgraph_supervisor import create_supervisor
 
 from .llm import get_llm
+from .hooks import red_flag_pre_hook
 from .prompts import (
     EMERGENCY_PROMPT,
     FOLLOWUP_HINTS,
@@ -29,7 +30,6 @@ from .prompts import (
     TRIAGE_PROMPT,
     VISION_PROMPT,
 )
-from .state import AgentState
 from .tools import (
     EMERGENCY_TOOLS,
     GENERAL_TOOLS,
@@ -48,12 +48,17 @@ def _build_specialists(llm: BaseChatModel) -> dict:
             EMERGENCY_TOOLS,
             name="emergency_agent",
             prompt=EMERGENCY_PROMPT,
+            # Deterministically run red-flag check before the LLM thinks.
+            # This makes the safety check bulletproof — not dependent on the
+            # model choosing to call the tool.
+            pre_model_hook=red_flag_pre_hook,
         ),
         "triage": create_react_agent(
             llm,
             TRIAGE_TOOLS,
             name="triage_agent",
             prompt=triage_prompt,
+            pre_model_hook=red_flag_pre_hook,
         ),
         "vision": create_react_agent(
             llm,
@@ -85,13 +90,14 @@ def build_graph(checkpointer=None):
         model=llm,
         agents=list(specialists.values()),
         prompt=SUPERVISOR_PROMPT,
-        # full_history = the final state contains the whole conversation,
+        # full_history: the final state contains the whole conversation,
         # which is what we want for multi-turn + traceability.
         output_mode="full_history",
         supervisor_name="sage_supervisor",
     )
 
     return supervisor.compile(checkpointer=checkpointer)
+
 
 def build_default_graph():
     """Build the graph with an in-memory checkpointer (dev default).
